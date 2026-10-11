@@ -93,8 +93,8 @@ class EngineeringView {
     const toPxX = (x_mm) => this.originX + x_mm * this.scale;
     const toPxY = (y_mm) => this.originY - y_mm * this.scale; // Invert Y for screen
 
-    // 1. Grid lines (50 mm spacing)
-    ctx.strokeStyle = '#1b2129';
+    // 1. Grid lines (50 mm spacing) - Crisp light engineering grid on white background
+    ctx.strokeStyle = '#e2e8f0';
     ctx.lineWidth = 1;
     for (let x = -250; x <= 250; x += 50) {
       ctx.beginPath();
@@ -110,12 +110,12 @@ class EngineeringView {
     }
 
     // 2. Structural Frame boundary (500 x 400 mm)
-    ctx.strokeStyle = '#484f58';
+    ctx.strokeStyle = '#334155';
     ctx.lineWidth = 3;
     ctx.strokeRect(toPxX(-this.fw_mm / 2), toPxY(this.fh_mm / 2), this.fw_mm * this.scale, this.fh_mm * this.scale);
 
     // Dimension labels
-    ctx.fillStyle = '#8b949e';
+    ctx.fillStyle = '#64748b';
     ctx.font = '10px "JetBrains Mono", monospace';
     ctx.fillText(`${this.fw_mm.toFixed(0)} mm`, toPxX(-20), toPxY(this.fh_mm / 2 + 15));
     ctx.fillText(`${this.fh_mm.toFixed(0)} mm`, toPxX(this.fw_mm / 2 + 10), toPxY(0));
@@ -222,7 +222,7 @@ class EngineeringView {
       const px = qx + bx;
       const py = qy + by;
 
-      ctx.strokeStyle = '#ffd700';
+      ctx.strokeStyle = '#0f172a';
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.moveTo(toPxX(ax), toPxY(ay));
@@ -230,7 +230,7 @@ class EngineeringView {
       ctx.stroke();
 
       // Attachment eyelet
-      ctx.fillStyle = '#ffd700';
+      ctx.fillStyle = '#1d4ed8';
       ctx.beginPath();
       ctx.arc(toPxX(px), toPxY(py), 3.5, 0, Math.PI * 2);
       ctx.fill();

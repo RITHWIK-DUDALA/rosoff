@@ -5,7 +5,7 @@ class SceneManager {
   constructor(containerElement) {
     this.container = containerElement;
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x0a0e14);
+    this.scene.background = new THREE.Color(0xffffff);
 
     const width = this.container.clientWidth || 800;
     const height = this.container.clientHeight || 600;
@@ -34,21 +34,21 @@ class SceneManager {
   }
 
   setupLighting() {
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.95);
     this.scene.add(ambientLight);
 
-    const dirLight1 = new THREE.DirectionalLight(0xffffff, 0.9);
+    const dirLight1 = new THREE.DirectionalLight(0xffffff, 0.85);
     dirLight1.position.set(0.5, -0.5, 1.2);
     this.scene.add(dirLight1);
 
-    const dirLight2 = new THREE.DirectionalLight(0x58a6ff, 0.4);
+    const dirLight2 = new THREE.DirectionalLight(0x94a3b8, 0.4);
     dirLight2.position.set(-0.5, 0.5, 0.8);
     this.scene.add(dirLight2);
   }
 
   setupEnvironment() {
     // Ground reference grid (in XY plane, slightly below robot at z = -0.07 m)
-    const grid = new THREE.GridHelper(1.2, 24, 0x30363d, 0x1c2128);
+    const grid = new THREE.GridHelper(1.2, 24, 0x94a3b8, 0xe2e8f0);
     grid.rotation.x = Math.PI / 2; // Orient grid in XY plane
     grid.position.z = -0.065;
     this.scene.add(grid);

@@ -393,9 +393,9 @@ class RobotView {
 
     this.scene.add(this.platformGroup);
 
-    // 4. Four White High-Strength Braided Cables (Exact matching photo)
+    // 4. Four High-Strength Braided Cables (High contrast dark slate for white background)
     const cableMat = new THREE.LineBasicMaterial({
-      color: 0xffffff, // White braided fishing/Dyneema line as in photo
+      color: 0x1e293b, // Dark charcoal / black braided Dyneema line with sharp contrast
       linewidth: 2
     });
     for (let i = 0; i < 4; i++) {
@@ -411,13 +411,13 @@ class RobotView {
   }
 
   initTargetMarker() {
-    const targetMat = new THREE.MeshBasicMaterial({ color: 0xf85149, wireframe: true });
+    const targetMat = new THREE.MeshBasicMaterial({ color: 0xdc2626, wireframe: true });
     this.targetMesh = new THREE.Mesh(new THREE.SphereGeometry(0.006, 16, 16), targetMat);
     this.scene.add(this.targetMesh);
   }
 
   initTrajectoryTrail() {
-    const trailMat = new THREE.LineBasicMaterial({ color: 0x39c5bb, transparent: true, opacity: 0.6 });
+    const trailMat = new THREE.LineBasicMaterial({ color: 0x0284c7, transparent: true, opacity: 0.75 });
     this.trailGeom = new THREE.BufferGeometry();
     this.trailLine = new THREE.Line(this.trailGeom, trailMat);
     this.scene.add(this.trailLine);
