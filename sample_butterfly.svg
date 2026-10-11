@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <!-- Precision Robot Butterfly Contour -->
+  <path d="M 200,200 
+           C 220,130 320,100 350,160 
+           C 380,220 310,270 200,220 
+           C 310,290 320,360 270,370 
+           C 220,380 210,270 200,230 
+           C 190,270 180,380 130,370 
+           C 80,360 90,290 200,220 
+           C 90,270 20,220 50,160 
+           C 80,100 180,130 200,200 Z" 
+        fill="none" stroke="#3b82f6" stroke-width="3"/>
+</svg>

@@ -1,0 +1,106 @@
+# Robot Configuration Specification - Planar Cable-Driven Parallel Robot (CDPR)
+# All physical calculations inside the simulation engine use SI units:
+# Length: meters (m), Time: seconds (s), Mass: kilograms (kg), Force: newtons (N), Angle: radians (rad)
+# Display values can be converted to mm, RPM, etc. at the boundary layers.
+
+units:
+  internal_length: "m"
+  internal_time: "s"
+  internal_mass: "kg"
+  internal_force: "N"
+  internal_angle: "rad"
+  display_length: "mm"
+  display_velocity: "mm/s"
+  display_angular_velocity: "RPM"
+
+coordinate_system:
+  origin: "center_of_frame"
+  x_axis: "horizontal_positive_right"
+  y_axis: "vertical_positive_upward"
+  z_axis: "normal_to_xy_plane"
+  plane: "horizontal" # Gravity acts along -Z, normal reaction carried by guide/bed
+
+frame:
+  width_m: 0.500      # 500 mm
+  height_m: 0.400     # 400 mm
+  depth_m: 0.120      # 120 mm
+  anchors:
+    # A_i coordinates [x, y, z] in meters from frame center
+    C1: [-0.250,  0.200, 0.0]  # Top-Left
+    C2: [ 0.250,  0.200, 0.0]  # Top-Right
+    C3: [ 0.250, -0.200, 0.0]  # Bottom-Right
+    C4: [-0.250, -0.200, 0.0]  # Bottom-Left
+
+platform:
+  width_m: 0.100      # 100 mm
+  height_m: 0.080     # 80 mm
+  thickness_m: 0.006  # 6 mm
+  mass_kg: 0.5        # 0.5 kg
+  inertia_z_kg_m2: 0.0006833 # (1/12) * 0.5 * (0.1^2 + 0.08^2)
+  attachments:
+    # b_i coordinates [x, y, z] relative to platform center in meters
+    C1: [-0.050,  0.040, 0.0]
+    C2: [ 0.050,  0.040, 0.0]
+    C3: [ 0.050, -0.040, 0.0]
+    C4: [-0.050, -0.040, 0.0]
+
+guide:
+  type: "dual_rod_anti_rotation"
+  diameter_m: 0.010   # 10 mm rods (provisional)
+  constrained_dof:
+    z_translation: true
+    x_rotation: true
+    y_rotation: true
+    z_rotation: true # Anti-rotation guide mechanically constrains rotation
+  free_dof:
+    x_translation: true
+    y_translation: true
+  friction_coefficient: 0.05 # Dry sliding friction assumption (provisional)
+
+cables:
+  count: 4
+  model: "rigid_massless_unilateral" # Rigid, massless, unilateral tension-only
+  min_tension_N: 2.0    # Minimum operating tension to prevent slack (provisional)
+  max_tension_N: 300.0  # Max allowable cable tension (provisional rating, unverified)
+  elastic_modulus_Pa: 1.0e11 # For reference / elastic extension estimation if needed
+  diameter_m: 0.001     # 1 mm Dyneema/steel cord
+
+actuators:
+  count: 4
+  drum_radius_m: 0.010  # 10 mm radius
+  drum_inertia_kg_m2: 1.0e-5 # Estimated drum rotational inertia (provisional)
+  max_speed_rpm: 300.0  # Provisional motor speed limit (300 RPM -> ~314 mm/s linear cable speed)
+  max_torque_Nm: 0.4    # Provisional motor torque limit (0.4 Nm -> 40 N cable tension at 10mm radius)
+  efficiency: 0.90      # Mechanical transmission efficiency (provisional)
+  control_bandwidth_hz: 50.0
+
+motion_limits:
+  nominal_max_speed_m_s: 0.100  # 100 mm/s platform velocity
+  max_accel_m_s2: 0.500        # 500 mm/s^2 platform acceleration
+  max_jerk_m_s3: 2.000         # 2000 mm/s^3 jerk limit for S-curve
+
+workspace:
+  # Theoretical bounding box: frame center +/- (frame - platform)/2 - clearance
+  safety_margin_m: 0.020 # 20 mm clearance from boundary
+  x_min_m: -0.180        # [-180 mm, +180 mm]
+  x_max_m:  0.180
+  y_min_m: -0.140        # [-140 mm, +140 mm]
+  y_max_m:  0.140
+
+simulation:
+  timestep_s: 0.010      # 100 Hz simulation update rate
+  telemetry_rate_hz: 30  # WebSocket publishing rate
+  solver_tolerances:
+    fk_tol: 1.0e-7
+    fk_max_iter: 50
+    tension_tol: 1.0e-5
+    tension_max_iter: 100
+    equilibrium_residual_tol: 0.01 # Max allowed residual force in N
+
+ros2:
+  enabled: false
+  node_name: "cdpr_simulator_node"
+  state_topic: "/cdpr/robot_state"
+  command_topic: "/cdpr/command"
+  diagnostics_topic: "/cdpr/diagnostics"
+  update_rate_hz: 50

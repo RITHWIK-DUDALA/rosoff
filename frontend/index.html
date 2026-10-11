@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Engineering Planar Cable Robot Simulator (CDPR)</title>
+  <meta name="description" content="Engineering-grade 2-DOF planar Cable-Driven Parallel Robot (CDPR) simulator with inverse/forward kinematics, tension allocation, and live telemetry.">
+  <link rel="stylesheet" href="style.css?v=3">
+  <!-- Load Three.js and OrbitControls -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Top Engineering Header Bar -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="robot-badge">CDPR-2DOF</div>
+        <h1>Planar Cable Robot Simulator <span class="sub-title">| 500x400 mm Industrial Testbed</span></h1>
+      </div>
+      <div class="header-center">
+        <div class="status-indicator">
+          <span class="status-dot" id="connection-dot"></span>
+          <span class="status-label" id="connection-status">CONNECTING...</span>
+        </div>
+        <div class="mode-pill" id="controller-mode-pill">IDLE</div>
+        <div class="sim-time" id="sim-time-display">T+ 0.00 s</div>
+      </div>
+      <div class="header-right">
+        <div class="view-mode-tabs" role="tablist">
+          <button id="tab-3d" class="btn-tab active" title="3D Three.js Perspective">3D View</button>
+          <button id="tab-2d" class="btn-tab" title="2D Orthographic Simulation">2D Sim</button>
+          <button id="tab-blueprint" class="btn-tab blueprint" title="Full CAD Blueprint with Complete Dimensions">📐 Blueprint (CAD)</button>
+        </div>
+        <button id="btn-header-reset" class="btn-warning-reset" title="Clear faults and reset robot to origin (0,0)">🔄 Reset State</button>
+        <button id="btn-estop" class="btn-danger-estop" title="Emergency Stop">E-STOP</button>
+      </div>
+    </header>
+
+    <!-- Main Dual-Viewports & Panels Workspace -->
+    <div class="main-workspace">
+      <!-- Left: Interactive Visual Viewports -->
+      <section class="viewport-container">
+        <!-- 3D Three.js Viewport -->
+        <div id="three-viewport" class="viewport active">
+          <div class="viewport-overlay">
+            <span class="viewport-tag">3D PERSPECTIVE (Three.js)</span>
+            <div class="overlay-legend">
+              <span class="legend-item"><span class="legend-color cable"></span>Cables (C1-C4)</span>
+              <span class="legend-item"><span class="legend-color target"></span>Target Reference</span>
+              <span class="legend-item"><span class="legend-color carriage"></span>Platform (End-Effector)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2D Dimensioned Engineering Viewport -->
+        <div id="engineering-viewport" class="viewport hidden">
+          <div class="viewport-overlay">
+            <span class="viewport-tag">2D ORTHOGRAPHIC MILLIMETER PROJECTION</span>
+            <div class="overlay-hint">Click inside workspace to send target coordinate</div>
+          </div>
+          <canvas id="canvas-2d"></canvas>
+        </div>
+
+        <!-- Full CAD Engineering Blueprint Viewport -->
+        <div id="blueprint-viewport" class="viewport hidden">
+          <div class="viewport-overlay">
+            <span class="viewport-tag blueprint-tag">📐 CAD ENGINEERING BLUEPRINT & DIMENSIONS</span>
+            <div class="blueprint-actions">
+              <button id="btn-export-blueprint" class="btn-sm btn-cyan" title="Export high-resolution PNG">Export Blueprint (PNG)</button>
+            </div>
+          </div>
+          <canvas id="canvas-blueprint"></canvas>
+        </div>
+      </section>
+
+      <!-- Right: Engineering Control & Telemetry Sidebar -->
+      <aside class="control-sidebar">
+        <!-- Primary Coordinate Command Panel -->
+        <div class="panel card">
+          <div class="panel-header">
+            <h3>Coordinate Command</h3>
+            <span class="badge">XY Direct</span>
+          </div>
+          <div class="panel-body">
+            <form id="form-move" class="command-grid">
+              <div class="input-group">
+                <label for="input-x">Target X (mm)</label>
+                <input type="number" id="input-x" value="0.0" min="-180" max="180" step="1.0" required>
+                <span class="input-hint">[-180, +180]</span>
+              </div>
+              <div class="input-group">
+                <label for="input-y">Target Y (mm)</label>
+                <input type="number" id="input-y" value="0.0" min="-140" max="140" step="1.0" required>
+                <span class="input-hint">[-140, +140]</span>
+              </div>
+              <div class="input-group full-width">
+                <label for="input-speed">Platform Speed (mm/s)</label>
+                <input type="range" id="input-speed" min="10" max="100" value="70" step="5">
+                <div class="range-readout"><span id="speed-val">70</span> mm/s (Nominal Max: 100)</div>
+              </div>
+              <div class="button-row full-width">
+                <button type="submit" id="btn-move" class="btn-primary">Execute Move</button>
+                <button type="button" id="btn-home" class="btn-secondary">Home (0,0)</button>
+              </div>
+            </form>
+
+            <!-- Jogging Grid -->
+            <div class="jog-section">
+              <h4>Incremental Jogging</h4>
+              <div class="jog-grid">
+                <div></div>
+                <button id="jog-up" class="btn-jog" title="Jog +Y (Up)">+Y</button>
+                <div></div>
+                <button id="jog-left" class="btn-jog" title="Jog -X (Left)">-X</button>
+                <div class="jog-step-selector">
+                  <select id="jog-step-size">
+                    <option value="5">5 mm</option>
+                    <option value="10" selected>10 mm</option>
+                    <option value="25">25 mm</option>
+                  </select>
+                </div>
+                <button id="jog-right" class="btn-jog" title="Jog +X (Right)">+X</button>
+                <div></div>
+                <button id="jog-down" class="btn-jog" title="Jog -Y (Down)">-Y</button>
+                <div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interactive Waypoint Builder & Vector Drawing Player -->
+        <div class="panel card">
+          <div class="panel-header">
+            <h3>Waypoints & Drawing Player</h3>
+            <span class="badge" id="path-mode-badge">G-Code / SVG</span>
+          </div>
+          <div class="panel-body">
+            <!-- Mode Selector -->
+            <div class="path-mode-toggle">
+              <button id="btn-mode-click" class="btn-sub-tab active" title="Click on 2D view to send single XY target">Direct XY</button>
+              <button id="btn-mode-waypoints" class="btn-sub-tab" title="Click on 2D view to place sequential waypoints">Path Builder</button>
+            </div>
+
+            <!-- Vector Presets Row -->
+            <div class="presets-row">
+              <span class="presets-label">Vector Presets:</span>
+              <div class="presets-buttons">
+                <button id="btn-preset-star" class="btn-chip" title="5-Point Geometric Star">Star ★</button>
+                <button id="btn-preset-spiral" class="btn-chip" title="Archimedean Spiral">Spiral 🌀</button>
+                <button id="btn-preset-gear" class="btn-chip" title="Mechanical 8-Tooth Gear">Gear ⚙️</button>
+                <button id="btn-preset-grid" class="btn-chip" title="Orthogonal Calibration Grid">Grid ▦</button>
+              </div>
+            </div>
+
+            <!-- G-Code & SVG File Upload / Dropzone -->
+            <div class="file-dropzone" id="vector-dropzone">
+              <input type="file" id="input-vector-file" accept=".svg,.gcode,.nc,.txt" style="display: none;">
+              <span class="dropzone-text">📁 Drop <strong>.svg</strong> or <strong>.gcode</strong> file here or <button type="button" id="btn-browse-file" class="btn-link">Browse</button></span>
+              <span class="dropzone-sub">Auto-fits into 280x220 mm safe drawing envelope</span>
+            </div>
+
+            <!-- Active Waypoints List & Counters -->
+            <div class="waypoints-summary">
+              <div class="wps-count">Waypoints: <strong id="lbl-wps-count">0</strong></div>
+              <div class="wps-actions">
+                <button id="btn-clear-wps" class="btn-xs btn-outline-danger" title="Clear all waypoints">Clear Points</button>
+                <button id="btn-clear-trail" class="btn-xs btn-outline-secondary" title="Clear pen drawing trail">Clear Trail</button>
+              </div>
+            </div>
+
+            <!-- Speed & Playback Execution -->
+            <div class="path-exec-row">
+              <div class="input-group-compact">
+                <label for="input-path-speed">Draw Speed:</label>
+                <input type="number" id="input-path-speed" value="50" min="10" max="100" step="5">
+                <span>mm/s</span>
+              </div>
+              <button id="btn-run-path" class="btn-primary-highlight" title="Execute current waypoints or vector drawing">▶ Execute Drawing</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Trajectory Planning & Presets -->
+        <div class="panel card">
+          <div class="panel-header">
+            <h3>Predefined Motion Patterns</h3>
+            <span class="badge">Kinematic</span>
+          </div>
+          <div class="panel-body">
+            <div class="trajectory-buttons">
+              <button id="btn-traj-circle" class="btn-outline">Circle (R=50 mm)</button>
+              <button id="btn-traj-rect" class="btn-outline">Rectangle (120x80 mm)</button>
+              <button id="btn-traj-figure8" class="btn-outline">Figure-8 Waypoints</button>
+            </div>
+            <div class="motion-state-actions">
+              <button id="btn-pause" class="btn-action">Pause</button>
+              <button id="btn-resume" class="btn-action">Resume</button>
+              <button id="btn-stop" class="btn-action">Stop</button>
+              <button id="btn-reset" class="btn-action">Reset State</button>
+            </div>
+            <div id="command-message-box" class="message-box info">Ready</div>
+          </div>
+        </div>
+
+        <!-- Robot Telemetry & Actuator Health Readout -->
+        <div class="panel card">
+          <div class="panel-header">
+            <h3>Actuator & Cable Telemetry</h3>
+            <span class="badge">Realtime</span>
+          </div>
+          <div class="panel-body">
+            <!-- Table of 4 Actuator Channels -->
+            <table class="telemetry-table">
+              <thead>
+                <tr>
+                  <th>Cable</th>
+                  <th>Length (mm)</th>
+                  <th>Rate (mm/s)</th>
+                  <th>Tension (N)</th>
+                  <th>RPM</th>
+                  <th>Torque (Nm)</th>
+                </tr>
+              </thead>
+              <tbody id="actuator-tbody">
+                <tr id="row-c1">
+                  <td><strong>C1</strong> (TL)</td>
+                  <td class="cell-len">-</td>
+                  <td class="cell-rate">-</td>
+                  <td class="cell-ten">-</td>
+                  <td class="cell-rpm">-</td>
+                  <td class="cell-tau">-</td>
+                </tr>
+                <tr id="row-c2">
+                  <td><strong>C2</strong> (TR)</td>
+                  <td class="cell-len">-</td>
+                  <td class="cell-rate">-</td>
+                  <td class="cell-ten">-</td>
+                  <td class="cell-rpm">-</td>
+                  <td class="cell-tau">-</td>
+                </tr>
+                <tr id="row-c3">
+                  <td><strong>C3</strong> (BR)</td>
+                  <td class="cell-len">-</td>
+                  <td class="cell-rate">-</td>
+                  <td class="cell-ten">-</td>
+                  <td class="cell-rpm">-</td>
+                  <td class="cell-tau">-</td>
+                </tr>
+                <tr id="row-c4">
+                  <td><strong>C4</strong> (BL)</td>
+                  <td class="cell-len">-</td>
+                  <td class="cell-rate">-</td>
+                  <td class="cell-ten">-</td>
+                  <td class="cell-rpm">-</td>
+                  <td class="cell-tau">-</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <!-- Platform Kinematic Coordinates -->
+            <div class="kinematic-summary">
+              <div class="stat-card">
+                <div class="stat-label">Platform Pos [X, Y]</div>
+                <div class="stat-value" id="disp-pos">[0.0, 0.0] mm</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">Tracking Error</div>
+                <div class="stat-value" id="disp-error">0.00 mm</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">Jacobian Cond. No.</div>
+                <div class="stat-value" id="disp-cond">1.00</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">Tension Feasibility</div>
+                <div class="stat-value ok" id="disp-tension-feas">FEASIBLE</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Bottom Engineering Diagnostic Graphs Bar -->
+    <section class="bottom-plots card">
+      <div class="plot-panel">
+        <h4>Position & Tracking Error (mm)</h4>
+        <canvas id="plot-pos-canvas"></canvas>
+      </div>
+      <div class="plot-panel">
+        <h4>Cable Tensions T1..T4 (N) [Limit: 300 N]</h4>
+        <canvas id="plot-tension-canvas"></canvas>
+      </div>
+      <div class="plot-panel">
+        <h4>Motor Speeds RPM1..RPM4 [Limit: 300 RPM]</h4>
+        <canvas id="plot-rpm-canvas"></canvas>
+      </div>
+      <div class="plot-panel">
+        <h4>Actuator Torques (Nm) [Limit: 0.4 Nm]</h4>
+        <canvas id="plot-torque-canvas"></canvas>
+      </div>
+    </section>
+  </div>
+
+  <!-- Modular Scripts -->
+  <script src="modules/scene.js?v=4"></script>
+  <script src="modules/robot_view.js?v=4"></script>
+  <script src="modules/engineering_view.js?v=4"></script>
+  <script src="modules/blueprint_view.js?v=4"></script>
+  <script src="modules/path_planner.js?v=4"></script>
+  <script src="modules/telemetry.js?v=4"></script>
+  <script src="modules/plots.js?v=4"></script>
+  <script src="modules/controls.js?v=4"></script>
+  <script src="app.js?v=4"></script>
+</body>
+</html>
