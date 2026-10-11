@@ -236,9 +236,9 @@ class EngineeringView {
       ctx.fill();
     });
 
-    // Platform Body (100 x 80 mm centered at [qx, qy])
-    ctx.fillStyle = 'rgba(31, 111, 235, 0.85)';
-    ctx.strokeStyle = '#58a6ff';
+    // Platform Body (60 x 40 mm centered at [qx, qy]) - Black 3D-printed plate
+    ctx.fillStyle = '#111317';
+    ctx.strokeStyle = '#334155';
     ctx.lineWidth = 2;
     const platLeft = toPxX(qx - this.pw_mm / 2);
     const platTop = toPxY(qy + this.ph_mm / 2);

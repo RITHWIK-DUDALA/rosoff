@@ -257,13 +257,13 @@ class RobotView {
       this.motorAssemblies.push(motorGroup);
     });
 
-    // 3. Moving Platform Assembly (Matches exact 60 x 40 mm 3D-printed grey plate with 4 eyelet screws)
+    // 3. Moving Platform Assembly (Matches exact 60 x 40 mm black 3D-printed plate with 4 eyelet screws)
     this.platformGroup = new THREE.Group();
 
-    // 3D-Printed textured grey platform body (60 mm x 40 mm x 5 mm)
+    // 3D-Printed solid black platform body (60 mm x 40 mm x 5 mm)
     const platMat = new THREE.MeshStandardMaterial({
-      color: 0x94a3b8, // Light bluish-grey 3D printed PLA/PETG
-      roughness: 0.60,
+      color: 0x111317, // Solid matte black 3D-printed PETG/PLA platform
+      roughness: 0.50,
       metalness: 0.15
     });
     const platMesh = new THREE.Mesh(new THREE.BoxGeometry(pw, ph, pt), platMat);
@@ -271,9 +271,9 @@ class RobotView {
 
     // 4 Standoff Guide Feet (elevates platform above bed, as seen in photo)
     const standoffMat = new THREE.MeshStandardMaterial({
-      color: 0xcfd6dc, // Stainless steel standoff spacers
-      metalness: 0.90,
-      roughness: 0.20
+      color: 0x334155, // Dark oxide / stainless standoff spacers
+      metalness: 0.85,
+      roughness: 0.25
     });
     const standoffRad = 0.003;
     const standoffH = 0.016;
@@ -292,14 +292,14 @@ class RobotView {
 
     // Screw eyelet rings & bolts exactly matching the physical platform in photo
     const boltHeadMat = new THREE.MeshStandardMaterial({
-      color: 0x1e293b, // Dark oxide / stainless bolt heads
-      metalness: 0.85,
-      roughness: 0.25
-    });
-    const eyeletRingMat = new THREE.MeshStandardMaterial({
-      color: 0xe2e8f0, // Stainless wire ring / eyelet loop
+      color: 0xe2e8f0, // Stainless steel socket-head bolts contrasting on black plate
       metalness: 0.95,
       roughness: 0.15
+    });
+    const eyeletRingMat = new THREE.MeshStandardMaterial({
+      color: 0xf8fafc, // Bright stainless wire eyelet loop
+      metalness: 0.95,
+      roughness: 0.12
     });
 
     this.attachments.forEach(att => {
