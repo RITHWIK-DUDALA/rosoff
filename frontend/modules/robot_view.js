@@ -31,8 +31,16 @@ class RobotView {
     const pw = this.config.platform.width_m || 0.100;
     const ph = this.config.platform.height_m || 0.080;
     const pt = this.config.platform.thickness_m || 0.006;
-
-
+    // 0. Workbench Table Base (Optional toggleable base)
+    const deskMat = new THREE.MeshStandardMaterial({
+      color: 0xb5814c, // Natural light oak/teak wood tabletop
+      roughness: 0.65,
+      metalness: 0.05
+    });
+    this.deskTable = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.38, 0.02), deskMat);
+    this.deskTable.position.set(0, 0, -0.040);
+    this.deskTable.visible = false; // Hidden by default, toggled via button
+    this.frameGroup.add(this.deskTable);
 
     // 1. Structural Frame (Clear Anodized 2020 T-Slot Aluminum Extrusions)
     const alum2020Mat = new THREE.MeshStandardMaterial({
@@ -482,6 +490,22 @@ class RobotView {
     const texture = new THREE.CanvasTexture(canvas);
     texture.needsUpdate = true;
     return texture;
+  }
+
+  toggleTable() {
+    if (this.deskTable) {
+      this.deskTable.visible = !this.deskTable.visible;
+      return this.deskTable.visible;
+    }
+    return false;
+  }
+
+  setTableVisible(visible) {
+    if (this.deskTable) {
+      this.deskTable.visible = !!visible;
+      return this.deskTable.visible;
+    }
+    return false;
   }
 }
 

@@ -219,6 +219,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   tab2d.addEventListener('click', () => setView('2d'));
   tabBlueprint.addEventListener('click', () => setView('blueprint'));
 
+  // Toggle Workbench Table Base in 3D View
+  const btnToggleTable = document.getElementById('btn-toggle-table');
+  if (btnToggleTable) {
+    btnToggleTable.addEventListener('click', () => {
+      const isVisible = robotView.toggleTable();
+      btnToggleTable.textContent = isVisible ? '🪵 Table Base: ON' : '🪵 Table Base: OFF';
+      btnToggleTable.classList.toggle('active', isVisible);
+      showMessage(isVisible ? 'Workbench table base added' : 'Workbench table base removed');
+    });
+  }
+
   window.addEventListener('resize', () => {
     if (activeView === 'blueprint') {
       blueprintView.render();
