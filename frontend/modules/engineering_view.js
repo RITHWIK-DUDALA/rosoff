@@ -135,24 +135,57 @@ class EngineeringView {
     ctx.fillRect(toPxX(wsXMin), toPxY(wsYMax), (wsXMax - wsXMin) * this.scale, (wsYMax - wsYMin) * this.scale);
     ctx.restore();
 
-    // 4. Corner Actuator Motors & Cable Spools (M1 - M4)
-    const motorSizeMm = 42; // NEMA 17 size footprint (42 mm)
+    // 4. Corner 28BYJ-48 Stepper Motors (5VDC 15031801) & Cable Spools (M1 - M4)
+    const canRadiusMm = 14; // 28 mm diameter body
+    const canOffsetMm = 8;  // 8 mm eccentric shaft offset
     this.anchors_mm.forEach(([ax, ay], i) => {
       const isLeft = ax < 0;
       const isTop = ay > 0;
-      const mX = isLeft ? ax - motorSizeMm : ax;
-      const mY = isTop ? ay : ay - motorSizeMm;
+      const dirX = isLeft ? -1 : 1;
+      const dirY = isTop ? 1 : -1;
+      
+      // Can center offset outward by 8 mm
+      const canCenterX = ax + dirX * (canOffsetMm * 0.7071);
+      const canCenterY = ay + dirY * (canOffsetMm * 0.7071);
 
-      // Motor housing body
-      ctx.fillStyle = '#161b22';
-      ctx.strokeStyle = '#39c5bb';
+      // (a) Stamped Sheet Metal Mounting Ears (35 mm pitch)
+      ctx.save();
+      ctx.translate(toPxX(canCenterX), toPxY(canCenterY));
+      ctx.rotate(Math.atan2(dirY, dirX) + Math.PI / 4);
+      ctx.fillStyle = '#64748b';
+      ctx.strokeStyle = '#94a3b8';
+      ctx.lineWidth = 1;
+      ctx.fillRect(-21 * this.scale, -4 * this.scale, 42 * this.scale, 8 * this.scale);
+      ctx.strokeRect(-21 * this.scale, -4 * this.scale, 42 * this.scale, 8 * this.scale);
+      // Screw holes
+      ctx.fillStyle = '#0f172a';
+      ctx.beginPath();
+      ctx.arc(-17.5 * this.scale, 0, 2 * this.scale, 0, Math.PI * 2);
+      ctx.arc(17.5 * this.scale, 0, 2 * this.scale, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      // (b) 28BYJ-48 Main Cylindrical Tin-Can Housing (dia 28 mm)
+      ctx.fillStyle = '#1e293b';
+      ctx.strokeStyle = '#94a3b8';
       ctx.lineWidth = 1.5;
-      ctx.fillRect(toPxX(mX), toPxY(mY + motorSizeMm), motorSizeMm * this.scale, motorSizeMm * this.scale);
-      ctx.strokeRect(toPxX(mX), toPxY(mY + motorSizeMm), motorSizeMm * this.scale, motorSizeMm * this.scale);
+      ctx.beginPath();
+      ctx.arc(toPxX(canCenterX), toPxY(canCenterY), canRadiusMm * this.scale, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
 
-      // Spool drum circle at anchor point
+      // (c) Signature Blue Terminal Wire Housing
+      const blueX = canCenterX + dirX * 12;
+      const blueY = canCenterY + dirY * 12;
+      ctx.fillStyle = '#1d5bc7';
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 1;
+      ctx.fillRect(toPxX(blueX - 6), toPxY(blueY + 6), 12 * this.scale, 12 * this.scale);
+      ctx.strokeRect(toPxX(blueX - 6), toPxY(blueY + 6), 12 * this.scale, 12 * this.scale);
+
+      // (d) Spool Drum & Output Shaft (aligned at exact anchor point ax, ay)
       const drumRadPx = 10 * this.scale;
-      ctx.fillStyle = '#238636';
+      ctx.fillStyle = '#059669';
       ctx.beginPath();
       ctx.arc(toPxX(ax), toPxY(ay), drumRadPx, 0, Math.PI * 2);
       ctx.fill();
@@ -160,20 +193,23 @@ class EngineeringView {
       ctx.lineWidth = 1.5;
       ctx.stroke();
 
-      // Shaft center point
-      ctx.fillStyle = '#f0f6fc';
+      // Brass D-Shaft center pin
+      ctx.fillStyle = '#d4af37';
       ctx.beginPath();
-      ctx.arc(toPxX(ax), toPxY(ay), 2.5, 0, Math.PI * 2);
+      ctx.arc(toPxX(ax), toPxY(ay), 2.5 * this.scale, 0, Math.PI * 2);
       ctx.fill();
 
-      // Motor label callout badge
-      ctx.fillStyle = '#58a6ff';
-      ctx.font = 'bold 10px "JetBrains Mono", monospace';
-      const labelText = `M${i+1} (C${i+1})`;
-      const textX = toPxX(isLeft ? ax - motorSizeMm / 2 : ax + motorSizeMm / 2);
-      const textY = toPxY(isTop ? ay + motorSizeMm + 14 : ay - motorSizeMm - 6);
+      // (e) Exact 28BYJ-48 Motor Model Callout Badge
+      ctx.fillStyle = '#38bdf8';
+      ctx.font = 'bold 9px "JetBrains Mono", monospace';
+      const labelText = `C${i+1}: 28BYJ-48 (5V)`;
+      const textX = toPxX(isLeft ? ax - 24 : ax + 24);
+      const textY = toPxY(isTop ? ay + 26 : ay - 18);
       ctx.textAlign = 'center';
       ctx.fillText(labelText, textX, textY);
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '8px "JetBrains Mono", monospace';
+      ctx.fillText('15031801', textX, textY + 11);
     });
 
     // 5. Cables and Platform

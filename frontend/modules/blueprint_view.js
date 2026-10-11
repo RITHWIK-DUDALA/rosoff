@@ -281,31 +281,51 @@ class BlueprintView {
     // Workspace internal dimensions
     this.drawLinearDimension(ctx, toX(wsXMin), toY(wsYMin), toX(wsXMax), toY(wsYMin), `${wsW.toFixed(1)} mm (WORKSPACE X)`, -24, true);
 
-    // E. 4x Actuator Motor Brackets (NEMA 17, 42x42 mm) & Winch Drums (dia 20.0 mm)
-    const motorSize = 42;
+    // E. 4x Actuator Stepper Motors (28BYJ-48 5VDC, P/N: 15031801, dia 28 mm, 35 mm pitch) & Winch Drums (dia 20.0 mm)
+    const canRadMm = 14;
+    const canOffsetMm = 8;
     this.anchors.forEach(([ax, ay], i) => {
       const isLeft = ax < 0;
       const isTop = ay > 0;
-      const mX = isLeft ? ax - motorSize : ax;
-      const mY = isTop ? ay : ay - motorSize;
+      const dirX = isLeft ? -1 : 1;
+      const dirY = isTop ? 1 : -1;
+      const canX = ax + dirX * (canOffsetMm * 0.7071);
+      const canY = ay + dirY * (canOffsetMm * 0.7071);
 
-      // NEMA 17 body
+      // Stamped mounting ears (35 mm pitch, 42 mm across)
+      ctx.save();
+      ctx.translate(toX(canX), toY(canY));
+      ctx.rotate(Math.atan2(dirY, dirX) + Math.PI / 4);
+      ctx.fillStyle = 'rgba(100, 116, 139, 0.4)';
+      ctx.strokeStyle = '#64748b';
+      ctx.lineWidth = 1;
+      ctx.fillRect(-21 * scale, -4 * scale, 42 * scale, 8 * scale);
+      ctx.strokeRect(-21 * scale, -4 * scale, 42 * scale, 8 * scale);
+      // M3 screw holes (35 mm pitch)
+      ctx.fillStyle = '#38bdf8';
+      [-17.5, 17.5].forEach(hx => {
+        ctx.beginPath();
+        ctx.arc(hx * scale, 0, 1.8, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.restore();
+
+      // Cylindrical tin-can body (dia 28.0 mm)
       ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
       ctx.strokeStyle = '#38bdf8';
       ctx.lineWidth = 1.5;
-      ctx.fillRect(toX(mX), toY(mY + motorSize), motorSize * scale, motorSize * scale);
-      ctx.strokeRect(toX(mX), toY(mY + motorSize), motorSize * scale, motorSize * scale);
+      ctx.beginPath();
+      ctx.arc(toX(canX), toY(canY), canRadMm * scale, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
 
-      // Motor M3 bolt pattern holes (31 mm PCD)
-      const boltOffset = 15.5;
-      const mcx = mX + motorSize / 2;
-      const mcy = mY + motorSize / 2;
-      ctx.fillStyle = '#60a5fa';
-      [[-1, 1], [1, 1], [1, -1], [-1, -1]].forEach(([bx, by]) => {
-        ctx.beginPath();
-        ctx.arc(toX(mcx + bx * boltOffset), toY(mcy + by * boltOffset), 1.8, 0, Math.PI * 2);
-        ctx.fill();
-      });
+      // Blue terminal housing representation
+      const blueX = canX + dirX * 11;
+      const blueY = canY + dirY * 11;
+      ctx.fillStyle = '#1d5bc7';
+      ctx.strokeStyle = '#60a5fa';
+      ctx.fillRect(toX(blueX - 5), toY(blueY + 5), 10 * scale, 10 * scale);
+      ctx.strokeRect(toX(blueX - 5), toY(blueY + 5), 10 * scale, 10 * scale);
 
       // Spool Winch Drum (radius = 10 mm, diameter = 20 mm)
       ctx.fillStyle = '#1e3a5f';
@@ -517,7 +537,7 @@ class BlueprintView {
     const rows = [
       { id: '1', item: 'Extruded Al Frame 2020', qty: '4', spec: '500x400x120 mm envelope' },
       { id: '2', item: 'End-Effector Carriage', qty: '1', spec: '100x80x6 mm (0.50 kg)' },
-      { id: '3', item: 'NEMA 17 Stepper Motors', qty: '4', spec: '0.40 Nm, 300 RPM prov.' },
+      { id: '3', item: '28BYJ-48 Stepper Motors', qty: '4', spec: '5VDC, P/N: 15031801, 64:1' },
       { id: '4', item: 'Winch Spool Drums', qty: '4', spec: 'dia 20.0 mm (r=10.0 mm)' },
       { id: '5', item: 'Dyneema UHMWPE Cable', qty: '4', spec: 'dia 1.0 mm, 300 N max' },
       { id: '6', item: 'Dual Linear Guide Rods', qty: '2', spec: 'dia 10.0 mm, CTC 120 mm' },

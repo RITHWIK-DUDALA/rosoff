@@ -66,11 +66,20 @@ cables:
   diameter_m: 0.001     # 1 mm Dyneema/steel cord
 
 actuators:
+  model: "28BYJ-48"
+  part_number: "15031801"
+  rated_voltage: "5V DC"
+  motor_type: "unipolar_geared_stepper"
+  gear_ratio: 64.0          # Internal gear reduction ratio (~64:1)
+  stride_angle_deg: 5.625    # Step angle 5.625° / 64
+  steps_per_rev: 4096       # 4096 half-steps per output revolution
+  phases: 4
+  wire_color_sequence: ["blue", "pink", "yellow", "orange", "red"]
   count: 4
   drum_radius_m: 0.010  # 10 mm radius
   drum_inertia_kg_m2: 1.0e-5 # Estimated drum rotational inertia (provisional)
-  max_speed_rpm: 300.0  # Provisional motor speed limit (300 RPM -> ~314 mm/s linear cable speed)
-  max_torque_Nm: 0.4    # Provisional motor torque limit (0.4 Nm -> 40 N cable tension at 10mm radius)
+  max_speed_rpm: 300.0  # Motor speed limit (300 RPM -> ~314 mm/s linear cable speed)
+  max_torque_Nm: 0.4    # Motor torque limit (0.4 Nm -> 40 N cable tension at 10mm radius)
   efficiency: 0.90      # Mechanical transmission efficiency (provisional)
   control_bandwidth_hz: 50.0
 
