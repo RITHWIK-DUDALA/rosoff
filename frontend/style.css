@@ -868,36 +868,4 @@ body {
 .stat-value.warn { color: var(--accent-orange); }
 .stat-value.error { color: var(--accent-red); }
 
-/* Bottom Plots */
-.bottom-plots {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-  height: 170px;
-  min-height: 170px;
-  background-color: var(--bg-secondary);
-  border-top: 1px solid var(--border-color);
-  padding: 10px 14px;
-}
 
-.plot-panel {
-  display: flex;
-  flex-direction: column;
-  background-color: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  padding: 6px;
-}
-
-.plot-panel h4 {
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--text-muted);
-  margin-bottom: 4px;
-}
-
-.plot-panel canvas {
-  flex: 1;
-  width: 100%;
-  height: 100%;
-}

@@ -181,9 +181,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // 4. Initialize Diagnostic Plots
-  const plotMgr = new PlotManager();
-
   // 5. Status message helper
   function showMessage(msg, isError = false) {
     commandMessageBox.textContent = msg;
@@ -283,9 +280,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       feasEl.textContent = 'INFEASIBLE';
       feasEl.className = 'stat-value error';
     }
-
-    // Push to diagnostic charts
-    plotMgr.pushData(telem);
   }
 
   // 8. WebSocket Telemetry Client
