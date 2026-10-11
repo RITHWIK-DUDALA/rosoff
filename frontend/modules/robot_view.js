@@ -32,15 +32,7 @@ class RobotView {
     const ph = this.config.platform.height_m || 0.080;
     const pt = this.config.platform.thickness_m || 0.006;
 
-    // 0. Real Wood Desktop Workbench Base
-    const deskMat = new THREE.MeshStandardMaterial({
-      color: 0xb5814c, // Natural light oak/teak wood tabletop
-      roughness: 0.65,
-      metalness: 0.05
-    });
-    const deskTable = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.38, 0.02), deskMat);
-    deskTable.position.set(0, 0, -0.040);
-    this.frameGroup.add(deskTable);
+
 
     // 1. Structural Frame (Clear Anodized 2020 T-Slot Aluminum Extrusions)
     const alum2020Mat = new THREE.MeshStandardMaterial({
@@ -261,34 +253,6 @@ class RobotView {
       motorGroup.add(drumGroup);
       this.drumMeshes.push(drumGroup);
 
-      // (f) Photo-styled Motor Identification Badge
-      const badgeCanvas = document.createElement('canvas');
-      badgeCanvas.width = 280;
-      badgeCanvas.height = 70;
-      const bCtx = badgeCanvas.getContext('2d');
-
-      // Rounded colored badge matching image pill style
-      const badgeBg = idx === 0 ? '#ef4444' : idx === 1 ? '#2563eb' : idx === 2 ? '#16a34a' : '#eab308';
-      bCtx.fillStyle = badgeBg;
-      bCtx.roundRect ? bCtx.roundRect(4, 4, 272, 62, 12) : bCtx.rect(4, 4, 272, 62);
-      bCtx.fill();
-      bCtx.strokeStyle = '#ffffff';
-      bCtx.lineWidth = 2;
-      bCtx.stroke();
-
-      bCtx.fillStyle = '#ffffff';
-      bCtx.font = 'bold 26px "Space Grotesk", sans-serif';
-      bCtx.textAlign = 'center';
-      bCtx.textBaseline = 'middle';
-      bCtx.fillText(labelTitle, 140, 35);
-
-      const badgeTexture = new THREE.CanvasTexture(badgeCanvas);
-      const spriteMat = new THREE.SpriteMaterial({ map: badgeTexture, transparent: true });
-      const sprite = new THREE.Sprite(spriteMat);
-      sprite.scale.set(0.08, 0.020, 1);
-      sprite.position.set(dirX * 0.038, dirY * 0.038, 0.024);
-      motorGroup.add(sprite);
-
       this.frameGroup.add(motorGroup);
       this.motorAssemblies.push(motorGroup);
     });
@@ -365,31 +329,6 @@ class RobotView {
       ring.position.set(att.x, att.y, pt / 2 + 0.003);
       this.platformGroup.add(ring);
     });
-
-    // Dimension Callout Badge for Platform (Matches "Moving Platform 60 x 40 mm")
-    const platBadgeCanvas = document.createElement('canvas');
-    platBadgeCanvas.width = 300;
-    platBadgeCanvas.height = 80;
-    const pCtx = platBadgeCanvas.getContext('2d');
-    pCtx.fillStyle = '#1d4ed8'; // Royal blue callout
-    pCtx.roundRect ? pCtx.roundRect(4, 4, 292, 72, 12) : pCtx.rect(4, 4, 292, 72);
-    pCtx.fill();
-    pCtx.strokeStyle = '#ffffff';
-    pCtx.lineWidth = 2;
-    pCtx.stroke();
-    pCtx.fillStyle = '#ffffff';
-    pCtx.font = 'bold 24px "Space Grotesk", sans-serif';
-    pCtx.textAlign = 'center';
-    pCtx.fillText('Moving Platform', 150, 34);
-    pCtx.font = '500 20px "JetBrains Mono", monospace';
-    pCtx.fillText('60 × 40 mm', 150, 62);
-
-    const platBadgeTexture = new THREE.CanvasTexture(platBadgeCanvas);
-    const platSpriteMat = new THREE.SpriteMaterial({ map: platBadgeTexture, transparent: true });
-    const platSprite = new THREE.Sprite(platSpriteMat);
-    platSprite.scale.set(0.09, 0.024, 1);
-    platSprite.position.set(0, -0.042, 0.018);
-    this.platformGroup.add(platSprite);
 
     this.scene.add(this.platformGroup);
 
