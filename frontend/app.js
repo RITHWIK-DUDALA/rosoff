@@ -4,11 +4,29 @@
  * WebSocket Telemetry streaming, Real-time Diagnostic Charts, and REST Controls.
  */
 document.addEventListener('DOMContentLoaded', async () => {
-  const protocol = window.location.protocol === 'https:' ? 'https:' : 'http:';
-  const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-  const host = window.location.host || 'localhost:8000';
-  const apiBase = `${protocol}//${host}/api`;
-  const wsUrl = `${wsProtocol}//${host}/ws/telemetry`;
+  // Resolve API and WebSocket endpoints (supports Vercel frontend pointing to external backend)
+  const urlParams = new URLSearchParams(window.location.search);
+  const backendParam = urlParams.get('backend');
+  if (backendParam) {
+    localStorage.setItem('cdpr_backend_url', backendParam);
+  }
+  const customBackend = backendParam || localStorage.getItem('cdpr_backend_url');
+
+  let apiBase, wsUrl;
+  if (customBackend) {
+    const cleanUrl = customBackend.replace(/\/+$/, '');
+    const isHttps = cleanUrl.startsWith('https:');
+    const wsProto = isHttps ? 'wss:' : 'ws:';
+    const hostPart = cleanUrl.replace(/^https?:\/\//, '');
+    apiBase = `${cleanUrl}/api`;
+    wsUrl = `${wsProto}//${hostPart}/ws/telemetry`;
+  } else {
+    const protocol = window.location.protocol === 'https:' ? 'https:' : 'http:';
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const host = window.location.host || 'localhost:8000';
+    apiBase = `${protocol}//${host}/api`;
+    wsUrl = `${wsProtocol}//${host}/ws/telemetry`;
+  }
 
   // UI Element references
   const connectionDot = document.getElementById('connection-dot');
