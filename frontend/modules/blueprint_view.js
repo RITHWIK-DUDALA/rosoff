@@ -17,27 +17,27 @@ class BlueprintView {
     this.ctx = canvasElement.getContext('2d');
     this.config = config;
 
-    this.fw = (config.frame.width_m || 0.500) * 1000.0;     // 500 mm
-    this.fh = (config.frame.height_m || 0.400) * 1000.0;    // 400 mm
-    this.fd = (config.frame.depth_m || 0.120) * 1000.0;     // 120 mm
-    this.pw = (config.platform.width_m || 0.100) * 1000.0;  // 100 mm
-    this.ph = (config.platform.height_m || 0.080) * 1000.0; // 80 mm
-    this.pt = (config.platform.thickness_m || 0.006) * 1000.0; // 6 mm
+    this.fw = (config.frame.width_m || 0.300) * 1000.0;     // 300 mm
+    this.fh = (config.frame.height_m || 0.200) * 1000.0;    // 200 mm
+    this.fd = (config.frame.depth_m || 0.080) * 1000.0;     // 80 mm
+    this.pw = (config.platform.width_m || 0.060) * 1000.0;  // 60 mm
+    this.ph = (config.platform.height_m || 0.040) * 1000.0; // 40 mm
+    this.pt = (config.platform.thickness_m || 0.005) * 1000.0; // 5 mm
     this.drumR = (config.actuators.drum_radius_m || 0.010) * 1000.0; // 10 mm
-    this.ws = config.workspace || { x_min_m: -0.18, x_max_m: 0.18, y_min_m: -0.14, y_max_m: 0.14 };
+    this.ws = config.workspace || { x_min_m: -0.11, x_max_m: 0.11, y_min_m: -0.07, y_max_m: 0.07 };
 
     this.anchors = [
-      [-this.fw / 2,  this.fh / 2], // C1 (-250, 200)
-      [ this.fw / 2,  this.fh / 2], // C2 ( 250, 200)
-      [ this.fw / 2, -this.fh / 2], // C3 ( 250,-200)
-      [-this.fw / 2, -this.fh / 2]  // C4 (-250,-200)
+      [-this.fw / 2,  this.fh / 2], // C1 (-150, 100)
+      [ this.fw / 2,  this.fh / 2], // C2 ( 150, 100)
+      [ this.fw / 2, -this.fh / 2], // C3 ( 150,-100)
+      [-this.fw / 2, -this.fh / 2]  // C4 (-150,-100)
     ];
 
     this.attachments = [
-      [-this.pw / 2,  this.ph / 2], // b1 (-50, 40)
-      [ this.pw / 2,  this.ph / 2], // b2 ( 50, 40)
-      [ this.pw / 2, -this.ph / 2], // b3 ( 50,-40)
-      [-this.pw / 2, -this.ph / 2]  // b4 (-50,-40)
+      [-this.pw / 2,  this.ph / 2], // b1 (-30, 20)
+      [ this.pw / 2,  this.ph / 2], // b2 ( 30, 20)
+      [ this.pw / 2, -this.ph / 2], // b3 ( 30,-20)
+      [-this.pw / 2, -this.ph / 2]  // b4 (-30,-20)
     ];
 
     this.latestTelemetry = null;

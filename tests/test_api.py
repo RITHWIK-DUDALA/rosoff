@@ -32,10 +32,10 @@ def test_workspace_endpoint(client):
     res = client.get("/api/workspace")
     assert res.status_code == 200
     ws = res.json()
-    assert ws["frame_width_mm"] == 500.0
-    assert ws["frame_height_mm"] == 400.0
-    assert ws["platform_width_mm"] == 100.0
-    assert ws["platform_height_mm"] == 80.0
+    assert ws["frame_width_mm"] == 300.0
+    assert ws["frame_height_mm"] == 200.0
+    assert ws["platform_width_mm"] == 60.0
+    assert ws["platform_height_mm"] == 40.0
     assert "anchors_mm" in ws
 
 

@@ -32,27 +32,50 @@ class RobotView {
     const ph = this.config.platform.height_m || 0.080;
     const pt = this.config.platform.thickness_m || 0.006;
 
-    // 1. Structural Frame (Aluminum extrusion representation)
-    const frameMat = new THREE.MeshStandardMaterial({
-      color: 0x484f58,
-      metalness: 0.8,
-      roughness: 0.3
+    // 0. Real Wood Desktop Workbench Base
+    const deskMat = new THREE.MeshStandardMaterial({
+      color: 0xb5814c, // Natural light oak/teak wood tabletop
+      roughness: 0.65,
+      metalness: 0.05
+    });
+    const deskTable = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.38, 0.02), deskMat);
+    deskTable.position.set(0, 0, -0.040);
+    this.frameGroup.add(deskTable);
+
+    // 1. Structural Frame (Clear Anodized 2020 T-Slot Aluminum Extrusions)
+    const alum2020Mat = new THREE.MeshStandardMaterial({
+      color: 0xc8d1d9, // Clear natural silver anodized aluminum
+      metalness: 0.85,
+      roughness: 0.28
+    });
+    const slotDarkMat = new THREE.MeshStandardMaterial({
+      color: 0x24292f, // Recessed T-slot dark groove
+      roughness: 0.8
     });
 
-    const beamThick = 0.025; // 25 mm extrusion
-    // Horizontal top & bottom beams
-    const topBeam = new THREE.Mesh(new THREE.BoxGeometry(fw + beamThick, beamThick, beamThick), frameMat);
-    topBeam.position.set(0, fh / 2 + beamThick / 2, 0);
-    const btmBeam = new THREE.Mesh(new THREE.BoxGeometry(fw + beamThick, beamThick, beamThick), frameMat);
-    btmBeam.position.set(0, -fh / 2 - beamThick / 2, 0);
+    const beamThick = 0.020; // Exact 20 mm x 20 mm aluminum extrusion profile
+    // Horizontal top & bottom 2020 rails
+    [fh / 2, -fh / 2].forEach(yPos => {
+      const rail = new THREE.Mesh(new THREE.BoxGeometry(fw + beamThick, beamThick, beamThick), alum2020Mat);
+      rail.position.set(0, yPos, -0.010);
+      this.frameGroup.add(rail);
 
-    // Vertical left & right beams
-    const leftBeam = new THREE.Mesh(new THREE.BoxGeometry(beamThick, fh + beamThick, beamThick), frameMat);
-    leftBeam.position.set(-fw / 2 - beamThick / 2, 0, 0);
-    const rightBeam = new THREE.Mesh(new THREE.BoxGeometry(beamThick, fh + beamThick, beamThick), frameMat);
-    rightBeam.position.set(fw / 2 + beamThick / 2, 0, 0);
+      // T-Slot center groove accent
+      const groove = new THREE.Mesh(new THREE.BoxGeometry(fw + beamThick, 0.006, 0.002), slotDarkMat);
+      groove.position.set(0, yPos, 0.0005);
+      this.frameGroup.add(groove);
+    });
 
-    this.frameGroup.add(topBeam, btmBeam, leftBeam, rightBeam);
+    // Vertical left & right 2020 rails
+    [-fw / 2, fw / 2].forEach(xPos => {
+      const rail = new THREE.Mesh(new THREE.BoxGeometry(beamThick, fh - beamThick, beamThick), alum2020Mat);
+      rail.position.set(xPos, 0, -0.010);
+      this.frameGroup.add(rail);
+
+      const groove = new THREE.Mesh(new THREE.BoxGeometry(0.006, fh - beamThick, 0.002), slotDarkMat);
+      groove.position.set(xPos, 0, 0.0005);
+      this.frameGroup.add(groove);
+    });
 
     // 2. Corner 28BYJ-48 Stepper Motors (5VDC 15031801) & Cable Spool Assemblies
     this.drumMeshes = [];
@@ -62,16 +85,21 @@ class RobotView {
     // Shared label texture for the rear stamped tin-can plate
     const motorLabelTexture = this.create28BYJ48LabelTexture();
 
-    // High-fidelity materials for authentic 28BYJ-48 stepper motor components
-    const tinCanMat = new THREE.MeshStandardMaterial({
-      color: 0xcfd6dc, // Tin-can brushed sheet metal
-      metalness: 0.90,
-      roughness: 0.25
+    // High-fidelity materials matching the physical hardware photo
+    const cornerBracketMat = new THREE.MeshStandardMaterial({
+      color: 0x181a1f, // Black 3D-printed PETG corner motor bracket
+      roughness: 0.55,
+      metalness: 0.1
     });
-    const stampedFlangeMat = new THREE.MeshStandardMaterial({
-      color: 0xb0b8c0, // Stamped sheet steel mounting ears
-      metalness: 0.85,
-      roughness: 0.30
+    const tinCanMat = new THREE.MeshStandardMaterial({
+      color: 0xd0d7de, // Silver galvanized tin-can motor housing
+      metalness: 0.88,
+      roughness: 0.22
+    });
+    const nylonSpoolMat = new THREE.MeshStandardMaterial({
+      color: 0xf8fafc, // Pure white 3D printed / injection-molded winch spool drum
+      roughness: 0.35,
+      metalness: 0.05
     });
     const brassShaftMat = new THREE.MeshStandardMaterial({
       color: 0xd4af37, // Real machined brass output D-shaft
@@ -79,309 +107,297 @@ class RobotView {
       roughness: 0.28
     });
     const blueBoxMat = new THREE.MeshStandardMaterial({
-      color: 0x1d5bc7, // Signature royal blue ABS injection-molded terminal casing
+      color: 0x1d5bc7, // Trademark royal blue wire connector box
       roughness: 0.36,
       metalness: 0.08
     });
-    const screwMat = new THREE.MeshStandardMaterial({
-      color: 0x94a3b8, // Zinc-plated steel M3 mounting screws
+    const silverScrewMat = new THREE.MeshStandardMaterial({
+      color: 0xf1f5f9, // Bright stainless steel cap-head hex screws
       metalness: 0.95,
       roughness: 0.15
     });
-    const connectorMat = new THREE.MeshStandardMaterial({
-      color: 0xf1f5f9, // Off-white nylon JST-XH 5-pin socket
-      roughness: 0.45,
-      metalness: 0.05
-    });
-    const drumMat = new THREE.MeshStandardMaterial({
-      color: 0x39c5bb, // Cyan anodized cable spool drum
-      metalness: 0.8,
-      roughness: 0.2
-    });
-    const drumFlangeMat = new THREE.MeshStandardMaterial({
-      color: 0x238636, // Green rim retention flange
-      metalness: 0.85,
-      roughness: 0.25
-    });
 
     const wireMaterials = [
-      new THREE.MeshStandardMaterial({ color: 0x2563eb, roughness: 0.4 }), // Blue (Coil 1)
-      new THREE.MeshStandardMaterial({ color: 0xec4899, roughness: 0.4 }), // Pink (Coil 2)
-      new THREE.MeshStandardMaterial({ color: 0xeab308, roughness: 0.4 }), // Yellow (Coil 3)
-      new THREE.MeshStandardMaterial({ color: 0xf97316, roughness: 0.4 }), // Orange (Coil 4)
-      new THREE.MeshStandardMaterial({ color: 0xef4444, roughness: 0.4 })  // Red (Common 5V)
+      new THREE.MeshStandardMaterial({ color: 0x2563eb, roughness: 0.4 }), // Blue
+      new THREE.MeshStandardMaterial({ color: 0xec4899, roughness: 0.4 }), // Pink
+      new THREE.MeshStandardMaterial({ color: 0xeab308, roughness: 0.4 }), // Yellow
+      new THREE.MeshStandardMaterial({ color: 0xf97316, roughness: 0.4 }), // Orange
+      new THREE.MeshStandardMaterial({ color: 0xef4444, roughness: 0.4 })  // Red
     ];
 
+    // Corner positions and labels matching the exact reference photo:
+    // M1 = Top-Left, M2 = Top-Right, M3 = Bottom-Right, M4 = Bottom-Left
     const cornerCoords = [
-      [-fw / 2,  fh / 2, "C1", -1,  1], // Top-Left
-      [ fw / 2,  fh / 2, "C2",  1,  1], // Top-Right
-      [ fw / 2, -fh / 2, "C3",  1, -1], // Bottom-Right
-      [-fw / 2, -fh / 2, "C4", -1, -1]  // Bottom-Left
+      [-fw / 2,  fh / 2, "Motor 1 (M1)", -1,  1],
+      [ fw / 2,  fh / 2, "Motor 2 (M2)",  1,  1],
+      [ fw / 2, -fh / 2, "Motor 3 (M3)",  1, -1],
+      [-fw / 2, -fh / 2, "Motor 4 (M4)", -1, -1]
     ];
 
-    cornerCoords.forEach(([x, y, cornerId, dirX, dirY], idx) => {
+    cornerCoords.forEach(([x, y, labelTitle, dirX, dirY], idx) => {
       const anchorPos = new THREE.Vector3(x, y, 0);
       this.anchors.push(anchorPos);
 
       const motorGroup = new THREE.Group();
       motorGroup.position.set(x, y, 0);
 
-      // (a) Sturdy corner aluminum mounting bracket attached to frame
-      const bracketMat = new THREE.MeshStandardMaterial({ color: 0x30363d, metalness: 0.8, roughness: 0.3 });
-      const bracket = new THREE.Mesh(new THREE.BoxGeometry(0.048, 0.048, 0.006), bracketMat);
-      bracket.position.set(dirX * 0.008, dirY * 0.008, -0.012);
-      motorGroup.add(bracket);
+      // (a) Black 3D-Printed Custom Corner Mounting Bracket (matches photo)
+      const bracketBase = new THREE.Mesh(
+        new THREE.BoxGeometry(0.046, 0.046, 0.012),
+        cornerBracketMat
+      );
+      bracketBase.position.set(dirX * 0.006, dirY * 0.006, -0.016);
+      motorGroup.add(bracketBase);
 
-      // (b) 28BYJ-48 Eccentric Offset:
-      // The output shaft sits at (0, 0, 0) for true analytical cable anchor tangency.
-      // The cylindrical motor can (dia 28 mm) is offset outward by 8 mm (0.008 m) along the corner diagonal.
-      const canOffsetDist = 0.008; // Exact 8 mm 28BYJ-48 gearbox center-to-shaft distance
-      const canOffsetX = dirX * (canOffsetDist * 0.7071);
-      const canOffsetY = dirY * (canOffsetDist * 0.7071);
-      const canPosZ = -0.022; // Can lies behind the mounting plane
+      // Upright motor cradle wall
+      const cradleWall = new THREE.Mesh(
+        new THREE.BoxGeometry(0.038, 0.038, 0.018),
+        cornerBracketMat
+      );
+      cradleWall.position.set(dirX * 0.010, dirY * 0.010, -0.004);
+      motorGroup.add(cradleWall);
 
-      // (c) Main 28BYJ-48 Cylindrical Tin-Can Body (Diameter: 28 mm, Depth: 19 mm)
-      const canRadius = 0.014;  // 14 mm radius = 28 mm diameter
-      const canLength = 0.019;  // 19 mm body depth
+      // Stainless socket head clamping bolts on the 3D-printed bracket (as in photo)
+      const bolt1 = new THREE.Mesh(new THREE.CylinderGeometry(0.0025, 0.0025, 0.003, 16), silverScrewMat);
+      bolt1.rotation.x = Math.PI / 2;
+      bolt1.position.set(dirX * 0.018, dirY * 0.018, 0.006);
+      motorGroup.add(bolt1);
+
+      const bolt2 = new THREE.Mesh(new THREE.CylinderGeometry(0.0025, 0.0025, 0.003, 16), silverScrewMat);
+      bolt2.rotation.x = Math.PI / 2;
+      bolt2.position.set(dirX * 0.004, dirY * 0.020, 0.006);
+      motorGroup.add(bolt2);
+
+      // (b) 28BYJ-48 Stepper Motor Cylindrical Body (Diameter: 28 mm, Depth: 19 mm)
+      // Horizontal mounting orienting spool drum toward the platform
+      const canRadius = 0.014;
+      const canLength = 0.019;
       const canGeom = new THREE.CylinderGeometry(canRadius, canRadius, canLength, 36);
       const motorCan = new THREE.Mesh(canGeom, tinCanMat);
-      motorCan.rotation.x = Math.PI / 2; // Axis along Z
-      motorCan.position.set(canOffsetX, canOffsetY, canPosZ);
+      motorCan.rotation.x = Math.PI / 2; // Can along Z
+      motorCan.position.set(dirX * 0.006, dirY * 0.006, -0.004);
       motorGroup.add(motorCan);
 
-      // (d) Stamped Tin-Can Rear Face with Printed Specification Text: "28BYJ-48 5V DC 15031801"
-      const rearLabelMat = new THREE.MeshBasicMaterial({
-        map: motorLabelTexture,
-        transparent: true
-      });
+      // Rear stamped metal plate with "28BYJ-48 5V DC 15031801"
       const rearLabelDisk = new THREE.Mesh(
         new THREE.CircleGeometry(canRadius * 0.98, 36),
-        rearLabelMat
+        new THREE.MeshBasicMaterial({ map: motorLabelTexture, transparent: true })
       );
-      rearLabelDisk.position.set(canOffsetX, canOffsetY, canPosZ - canLength / 2 - 0.0002);
-      rearLabelDisk.rotation.y = Math.PI; // Face outwards toward rear of robot
+      rearLabelDisk.position.set(dirX * 0.006, dirY * 0.006, -0.004 - canLength / 2 - 0.0002);
+      rearLabelDisk.rotation.y = Math.PI;
       motorGroup.add(rearLabelDisk);
 
-      // (e) Stamped Sheet Metal Mounting Ears (Flanges) with 35 mm Hole Pitch
-      // Total width: 42 mm across, height: 7.5 mm, thickness: 0.8 mm
-      const flangeGroup = new THREE.Group();
-      flangeGroup.position.set(canOffsetX, canOffsetY, canPosZ + canLength / 2);
-      // Angle the ears to line up diagonally with the bracket
-      flangeGroup.rotation.z = Math.atan2(dirY, dirX) + Math.PI / 4;
-
-      const flangePlate = new THREE.Mesh(
-        new THREE.BoxGeometry(0.042, 0.0075, 0.0008),
-        stampedFlangeMat
-      );
-      flangeGroup.add(flangePlate);
-
-      // 2x Mounting Screws & Washers (Pitch: 35 mm -> +/- 17.5 mm from can center)
-      [-0.0175, 0.0175].forEach(holeX => {
-        const screwHead = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.0025, 0.0025, 0.002, 16),
-          screwMat
-        );
-        screwHead.rotation.x = Math.PI / 2;
-        screwHead.position.set(holeX, 0, 0.001);
-        flangeGroup.add(screwHead);
-      });
-      motorGroup.add(flangeGroup);
-
-      // (f) Front Gearbox Output Neck / Boss (Diameter: 9 mm, Height: 1.5 mm)
-      // Located at (0, 0), concentric with the output shaft
-      const bossCollar = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.0045, 0.0045, 0.002, 24),
-        tinCanMat
-      );
-      bossCollar.rotation.x = Math.PI / 2;
-      bossCollar.position.set(0, 0, -0.011);
-      motorGroup.add(bossCollar);
-
-      // (g) Characteristic Blue Plastic Wire Terminal Enclosure (14.6 x 16 x 16 mm)
-      // Molded on the side of the 28 mm can
-      const blueBoxAngle = Math.atan2(dirY, dirX) + Math.PI * 0.75;
-      const blueBoxDist = canRadius + 0.004;
-      const blueBoxX = canOffsetX + Math.cos(blueBoxAngle) * blueBoxDist;
-      const blueBoxY = canOffsetY + Math.sin(blueBoxAngle) * blueBoxDist;
-
-      const blueBox = new THREE.Mesh(
-        new THREE.BoxGeometry(0.0146, 0.015, 0.016),
-        blueBoxMat
-      );
-      blueBox.position.set(blueBoxX, blueBoxY, canPosZ);
-      blueBox.rotation.z = blueBoxAngle;
+      // (c) Trademark Blue Plastic Terminal Housing
+      const blueBox = new THREE.Mesh(new THREE.BoxGeometry(0.014, 0.014, 0.015), blueBoxMat);
+      blueBox.position.set(dirX * 0.014, dirY * 0.014, -0.004);
       motorGroup.add(blueBox);
 
-      // Molded clip detail on blue box
-      const clipDetail = new THREE.Mesh(
-        new THREE.BoxGeometry(0.004, 0.0165, 0.004),
-        blueBoxMat
-      );
-      clipDetail.position.set(blueBoxX, blueBoxY, canPosZ);
-      clipDetail.rotation.z = blueBoxAngle;
-      motorGroup.add(clipDetail);
-
-      // (h) 5-Wire Colored Ribbon Harness (Blue, Pink, Yellow, Orange, Red)
-      // Emerging from the blue terminal housing toward an off-white JST-XH connector
+      // (d) 5-Wire Colored Ribbon Cable (Blue, Pink, Yellow, Orange, Red)
       const wireGroup = new THREE.Group();
-      const wirePitch = 0.0018;
-      const wireLen = 0.024;
-
       for (let w = 0; w < 5; w++) {
-        const wOffset = (w - 2) * wirePitch;
+        const wOffset = (w - 2) * 0.0016;
         const curve = new THREE.CatmullRomCurve3([
-          new THREE.Vector3(blueBoxX + wOffset * 0.5, blueBoxY, canPosZ),
-          new THREE.Vector3(blueBoxX + dirX * 0.008 + wOffset * 0.5, blueBoxY + dirY * 0.008, canPosZ - 0.006),
-          new THREE.Vector3(blueBoxX + dirX * 0.016 + wOffset, blueBoxY + dirY * 0.016, canPosZ - 0.014)
+          new THREE.Vector3(dirX * 0.016 + wOffset, dirY * 0.016, -0.004),
+          new THREE.Vector3(dirX * 0.026 + wOffset, dirY * 0.024, -0.010),
+          new THREE.Vector3(dirX * 0.038, dirY * 0.028 + wOffset, -0.022)
         ]);
         const wireTube = new THREE.Mesh(
-          new THREE.TubeGeometry(curve, 10, 0.0006, 8, false),
+          new THREE.TubeGeometry(curve, 8, 0.0006, 6, false),
           wireMaterials[w]
         );
         wireGroup.add(wireTube);
       }
       motorGroup.add(wireGroup);
 
-      // 5-Pin JST-XH White Female Connector Plug
-      const jstPlug = new THREE.Mesh(
-        new THREE.BoxGeometry(0.012, 0.005, 0.006),
-        connectorMat
-      );
-      jstPlug.position.set(blueBoxX + dirX * 0.016, blueBoxY + dirY * 0.016, canPosZ - 0.016);
-      motorGroup.add(jstPlug);
-
-      // (i) Rotating Output Sub-Assembly: Brass D-Shaft & Cable Spool Drum
+      // (e) Rotating Output Sub-Assembly: White Nylon Winch Spool & Brass D-Shaft
+      // Exactly matches the white spool drums in the reference photo!
       const drumGroup = new THREE.Group();
       drumGroup.position.set(0, 0, 0);
 
-      // Precision Machined Brass D-Shaft (Diameter: 5 mm, Length: 10 mm)
+      // Machined brass output shaft
       const brassShaft = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.0025, 0.0025, 0.020, 20),
+        new THREE.CylinderGeometry(0.0025, 0.0025, 0.018, 16),
         brassShaftMat
       );
       brassShaft.rotation.x = Math.PI / 2;
-      brassShaft.position.set(0, 0, -0.002);
+      brassShaft.position.set(0, 0, 0.002);
       drumGroup.add(brassShaft);
 
-      // Brass D-Flat Machined Face (creates classic 3 mm D-shaft profile)
-      const flatCutMat = new THREE.MeshStandardMaterial({
-        color: 0xbf9b30,
-        metalness: 0.85,
-        roughness: 0.35
-      });
-      const dFlat = new THREE.Mesh(
-        new THREE.BoxGeometry(0.0032, 0.001, 0.012),
-        flatCutMat
-      );
-      dFlat.position.set(0, 0.0021, 0.004);
-      drumGroup.add(dFlat);
-
-      // Spool Core Cylinder (Radius r = 10 mm, width = 14 mm)
+      // White spool drum center core (Radius r = 10 mm, width = 12 mm)
       const drumCore = new THREE.Mesh(
-        new THREE.CylinderGeometry(drumR, drumR, 0.014, 28),
-        drumMat
+        new THREE.CylinderGeometry(drumR, drumR, 0.012, 32),
+        nylonSpoolMat
       );
       drumCore.rotation.x = Math.PI / 2;
       drumGroup.add(drumCore);
 
-      // Drum bottom retention flange (wider green rim)
-      const btmFlange = new THREE.Mesh(
-        new THREE.CylinderGeometry(drumR * 1.45, drumR * 1.45, 0.0025, 28),
-        drumFlangeMat
+      // Inner white spool flange (rim dia 26 mm)
+      const innerFlange = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.013, 0.013, 0.002, 32),
+        nylonSpoolMat
       );
-      btmFlange.rotation.x = Math.PI / 2;
-      btmFlange.position.set(0, 0, -0.007);
-      drumGroup.add(btmFlange);
+      innerFlange.rotation.x = Math.PI / 2;
+      innerFlange.position.set(0, 0, -0.006);
+      drumGroup.add(innerFlange);
 
-      // Drum top retention flange (wider green rim)
-      const topFlange = new THREE.Mesh(
-        new THREE.CylinderGeometry(drumR * 1.45, drumR * 1.45, 0.0025, 28),
-        drumFlangeMat
+      // Outer white spool flange (rim dia 26 mm)
+      const outerFlange = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.013, 0.013, 0.002, 32),
+        nylonSpoolMat
       );
-      topFlange.rotation.x = Math.PI / 2;
-      topFlange.position.set(0, 0, 0.007);
-      drumGroup.add(topFlange);
+      outerFlange.rotation.x = Math.PI / 2;
+      outerFlange.position.set(0, 0, 0.006);
+      drumGroup.add(outerFlange);
 
-      // Visual alignment spoke on drum face so stepper rotation is clearly visible
-      const spoke = new THREE.Mesh(
-        new THREE.BoxGeometry(drumR * 2.5, 0.002, 0.001),
-        new THREE.MeshBasicMaterial({ color: 0xffffff })
+      // Silver retaining screw on center of spool face (as seen in photo)
+      const centerRetainer = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.0035, 0.0035, 0.002, 16),
+        silverScrewMat
       );
-      spoke.position.set(0, 0, 0.0085);
-      drumGroup.add(spoke);
+      centerRetainer.rotation.x = Math.PI / 2;
+      centerRetainer.position.set(0, 0, 0.008);
+      drumGroup.add(centerRetainer);
 
       motorGroup.add(drumGroup);
       this.drumMeshes.push(drumGroup);
 
-      // (j) Exact 28BYJ-48 Stepper Motor Identification Badge (3D Billboard sprite)
+      // (f) Photo-styled Motor Identification Badge
       const badgeCanvas = document.createElement('canvas');
-      badgeCanvas.width = 320;
-      badgeCanvas.height = 96;
+      badgeCanvas.width = 280;
+      badgeCanvas.height = 70;
       const bCtx = badgeCanvas.getContext('2d');
 
-      // Dark translucent badge background
-      bCtx.fillStyle = 'rgba(13, 17, 23, 0.88)';
-      bCtx.roundRect ? bCtx.roundRect(4, 4, 312, 88, 10) : bCtx.rect(4, 4, 312, 88);
+      // Rounded colored badge matching image pill style
+      const badgeBg = idx === 0 ? '#ef4444' : idx === 1 ? '#2563eb' : idx === 2 ? '#16a34a' : '#eab308';
+      bCtx.fillStyle = badgeBg;
+      bCtx.roundRect ? bCtx.roundRect(4, 4, 272, 62, 12) : bCtx.rect(4, 4, 272, 62);
       bCtx.fill();
-      bCtx.strokeStyle = '#38bdf8';
-      bCtx.lineWidth = 3;
+      bCtx.strokeStyle = '#ffffff';
+      bCtx.lineWidth = 2;
       bCtx.stroke();
 
-      // Top Title: Motor Corner & Model
-      bCtx.fillStyle = '#38bdf8';
-      bCtx.font = 'bold 24px "Space Grotesk", sans-serif';
+      bCtx.fillStyle = '#ffffff';
+      bCtx.font = 'bold 26px "Space Grotesk", sans-serif';
       bCtx.textAlign = 'center';
-      bCtx.fillText(`${cornerId} • 28BYJ-48 (5V DC)`, 160, 36);
-
-      // Subtitle: Part Number & Stepper Details
-      bCtx.fillStyle = '#94a3b8';
-      bCtx.font = '500 18px "JetBrains Mono", monospace';
-      bCtx.fillText(`P/N: 15031801 | 64:1 GEAR`, 160, 68);
+      bCtx.textBaseline = 'middle';
+      bCtx.fillText(labelTitle, 140, 35);
 
       const badgeTexture = new THREE.CanvasTexture(badgeCanvas);
       const spriteMat = new THREE.SpriteMaterial({ map: badgeTexture, transparent: true });
       const sprite = new THREE.Sprite(spriteMat);
-      sprite.scale.set(0.11, 0.033, 1);
-      // Offset badge outward from frame corner
-      const offsetX = dirX * 0.040;
-      const offsetY = dirY * 0.040;
-      sprite.position.set(offsetX, offsetY, 0.030);
+      sprite.scale.set(0.08, 0.020, 1);
+      sprite.position.set(dirX * 0.038, dirY * 0.038, 0.024);
       motorGroup.add(sprite);
 
       this.frameGroup.add(motorGroup);
       this.motorAssemblies.push(motorGroup);
     });
 
-    // 3. Moving Platform Assembly (Clean cable-suspended platform)
+    // 3. Moving Platform Assembly (Matches exact 60 x 40 mm 3D-printed grey plate with 4 eyelet screws)
     this.platformGroup = new THREE.Group();
+
+    // 3D-Printed textured grey platform body (60 mm x 40 mm x 5 mm)
     const platMat = new THREE.MeshStandardMaterial({
-      color: 0x1f6feb,
-      metalness: 0.5,
-      roughness: 0.4
+      color: 0x94a3b8, // Light bluish-grey 3D printed PLA/PETG
+      roughness: 0.60,
+      metalness: 0.15
     });
     const platMesh = new THREE.Mesh(new THREE.BoxGeometry(pw, ph, pt), platMat);
     this.platformGroup.add(platMesh);
 
-    // Local platform attachment points
+    // 4 Standoff Guide Feet (elevates platform above bed, as seen in photo)
+    const standoffMat = new THREE.MeshStandardMaterial({
+      color: 0xcfd6dc, // Stainless steel standoff spacers
+      metalness: 0.90,
+      roughness: 0.20
+    });
+    const standoffRad = 0.003;
+    const standoffH = 0.016;
+
+    // Local platform attachment points (corner eyelet bolts)
+    // pw = 0.060 m (60 mm), ph = 0.040 m (40 mm)
+    const attX = 0.022; // 44 mm spacing between left-right eyelets
+    const attY = 0.014; // 28 mm spacing between top-bottom eyelets
+
     this.attachments = [
-      new THREE.Vector3(-pw / 2,  ph / 2, 0), // C1
-      new THREE.Vector3( pw / 2,  ph / 2, 0), // C2
-      new THREE.Vector3( pw / 2, -ph / 2, 0), // C3
-      new THREE.Vector3(-pw / 2, -ph / 2, 0)  // C4
+      new THREE.Vector3(-attX,  attY, 0), // C1 (M1)
+      new THREE.Vector3( attX,  attY, 0), // C2 (M2)
+      new THREE.Vector3( attX, -attY, 0), // C3 (M3)
+      new THREE.Vector3(-attX, -attY, 0)  // C4 (M4)
     ];
 
-    // Attachment eyelet markers on platform
-    const eyeletMat = new THREE.MeshBasicMaterial({ color: 0xffd700 });
-    this.attachments.forEach(att => {
-      const eyelet = new THREE.Mesh(new THREE.SphereGeometry(0.004, 12, 12), eyeletMat);
-      eyelet.position.copy(att);
-      this.platformGroup.add(eyelet);
+    // Screw eyelet rings & bolts exactly matching the physical platform in photo
+    const boltHeadMat = new THREE.MeshStandardMaterial({
+      color: 0x1e293b, // Dark oxide / stainless bolt heads
+      metalness: 0.85,
+      roughness: 0.25
     });
+    const eyeletRingMat = new THREE.MeshStandardMaterial({
+      color: 0xe2e8f0, // Stainless wire ring / eyelet loop
+      metalness: 0.95,
+      roughness: 0.15
+    });
+
+    this.attachments.forEach(att => {
+      // (a) Standoff leg beneath the platform
+      const leg = new THREE.Mesh(
+        new THREE.CylinderGeometry(standoffRad, standoffRad, standoffH, 16),
+        standoffMat
+      );
+      leg.rotation.x = Math.PI / 2;
+      leg.position.set(att.x, att.y, -standoffH / 2 - pt / 2);
+      this.platformGroup.add(leg);
+
+      // (b) Hex screw head on top of the platform
+      const screwHead = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.0035, 0.0035, 0.002, 16),
+        boltHeadMat
+      );
+      screwHead.rotation.x = Math.PI / 2;
+      screwHead.position.set(att.x, att.y, pt / 2 + 0.001);
+      this.platformGroup.add(screwHead);
+
+      // (c) Stainless cable eyelet ring
+      const ring = new THREE.Mesh(
+        new THREE.TorusGeometry(0.003, 0.0008, 12, 24),
+        eyeletRingMat
+      );
+      ring.position.set(att.x, att.y, pt / 2 + 0.003);
+      this.platformGroup.add(ring);
+    });
+
+    // Dimension Callout Badge for Platform (Matches "Moving Platform 60 x 40 mm")
+    const platBadgeCanvas = document.createElement('canvas');
+    platBadgeCanvas.width = 300;
+    platBadgeCanvas.height = 80;
+    const pCtx = platBadgeCanvas.getContext('2d');
+    pCtx.fillStyle = '#1d4ed8'; // Royal blue callout
+    pCtx.roundRect ? pCtx.roundRect(4, 4, 292, 72, 12) : pCtx.rect(4, 4, 292, 72);
+    pCtx.fill();
+    pCtx.strokeStyle = '#ffffff';
+    pCtx.lineWidth = 2;
+    pCtx.stroke();
+    pCtx.fillStyle = '#ffffff';
+    pCtx.font = 'bold 24px "Space Grotesk", sans-serif';
+    pCtx.textAlign = 'center';
+    pCtx.fillText('Moving Platform', 150, 34);
+    pCtx.font = '500 20px "JetBrains Mono", monospace';
+    pCtx.fillText('60 × 40 mm', 150, 62);
+
+    const platBadgeTexture = new THREE.CanvasTexture(platBadgeCanvas);
+    const platSpriteMat = new THREE.SpriteMaterial({ map: platBadgeTexture, transparent: true });
+    const platSprite = new THREE.Sprite(platSpriteMat);
+    platSprite.scale.set(0.09, 0.024, 1);
+    platSprite.position.set(0, -0.042, 0.018);
+    this.platformGroup.add(platSprite);
 
     this.scene.add(this.platformGroup);
 
-    // 5. Four Rigid Cables (Lines between Anchors and Platform Attachments)
-    const cableMat = new THREE.LineBasicMaterial({ color: 0xffd700, linewidth: 2 });
+    // 4. Four White High-Strength Braided Cables (Exact matching photo)
+    const cableMat = new THREE.LineBasicMaterial({
+      color: 0xffffff, // White braided fishing/Dyneema line as in photo
+      linewidth: 2
+    });
     for (let i = 0; i < 4; i++) {
       const geom = new THREE.BufferGeometry().setFromPoints([
         this.anchors[i],

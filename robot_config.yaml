@@ -21,28 +21,28 @@ coordinate_system:
   plane: "horizontal" # Gravity acts along -Z, normal reaction carried by guide/bed
 
 frame:
-  width_m: 0.500      # 500 mm
-  height_m: 0.400     # 400 mm
-  depth_m: 0.120      # 120 mm
+  width_m: 0.300      # 300 mm
+  height_m: 0.200     # 200 mm
+  depth_m: 0.080      # 80 mm
   anchors:
     # A_i coordinates [x, y, z] in meters from frame center
-    C1: [-0.250,  0.200, 0.0]  # Top-Left
-    C2: [ 0.250,  0.200, 0.0]  # Top-Right
-    C3: [ 0.250, -0.200, 0.0]  # Bottom-Right
-    C4: [-0.250, -0.200, 0.0]  # Bottom-Left
+    C1: [-0.150,  0.100, 0.0]  # Top-Left (Motor 1)
+    C2: [ 0.150,  0.100, 0.0]  # Top-Right (Motor 2)
+    C3: [ 0.150, -0.100, 0.0]  # Bottom-Right (Motor 3)
+    C4: [-0.150, -0.100, 0.0]  # Bottom-Left (Motor 4)
 
 platform:
-  width_m: 0.100      # 100 mm
-  height_m: 0.080     # 80 mm
-  thickness_m: 0.006  # 6 mm
-  mass_kg: 0.5        # 0.5 kg
-  inertia_z_kg_m2: 0.0006833 # (1/12) * 0.5 * (0.1^2 + 0.08^2)
+  width_m: 0.060      # 60 mm
+  height_m: 0.040     # 40 mm
+  thickness_m: 0.005  # 5 mm
+  mass_kg: 0.15       # 0.15 kg
+  inertia_z_kg_m2: 0.000065 # (1/12) * 0.15 * (0.06^2 + 0.04^2)
   attachments:
-    # b_i coordinates [x, y, z] relative to platform center in meters
-    C1: [-0.050,  0.040, 0.0]
-    C2: [ 0.050,  0.040, 0.0]
-    C3: [ 0.050, -0.040, 0.0]
-    C4: [-0.050, -0.040, 0.0]
+    # b_i coordinates [x, y, z] relative to platform center in meters (corner eyelet bolts)
+    C1: [-0.030,  0.020, 0.0]
+    C2: [ 0.030,  0.020, 0.0]
+    C3: [ 0.030, -0.020, 0.0]
+    C4: [-0.030, -0.020, 0.0]
 
 guide:
   type: "dual_rod_anti_rotation"
@@ -90,11 +90,11 @@ motion_limits:
 
 workspace:
   # Theoretical bounding box: frame center +/- (frame - platform)/2 - clearance
-  safety_margin_m: 0.020 # 20 mm clearance from boundary
-  x_min_m: -0.180        # [-180 mm, +180 mm]
-  x_max_m:  0.180
-  y_min_m: -0.140        # [-140 mm, +140 mm]
-  y_max_m:  0.140
+  safety_margin_m: 0.010 # 10 mm clearance from boundary
+  x_min_m: -0.110        # [-110 mm, +110 mm]
+  x_max_m:  0.110
+  y_min_m: -0.070        # [-70 mm, +70 mm]
+  y_max_m:  0.070
 
 simulation:
   timestep_s: 0.010      # 100 Hz simulation update rate

@@ -17,24 +17,24 @@ def test_inverse_kinematics_positive_lengths(kin):
     """IK must return 4 positive lengths within workspace."""
     test_positions = [
         np.array([0.0, 0.0]),
-        np.array([0.1, 0.05]),
-        np.array([-0.08, -0.06]),
-        np.array([0.15, -0.10])
+        np.array([0.06, 0.03]),
+        np.array([-0.05, -0.04]),
+        np.array([0.08, -0.05])
     ]
     for q in test_positions:
         res = kin.inverse_kinematics(q)
         assert res.is_valid
         assert len(res.lengths) == 4
-        assert np.all(res.lengths > 0.05)
+        assert np.all(res.lengths > 0.02)
 
 
 def test_jacobian_analytical_vs_finite_difference(kin):
     """Verify analytical Jacobian matches central finite difference derivatives."""
     test_positions = [
         np.array([0.0, 0.0]),
-        np.array([0.05, 0.03]),
-        np.array([-0.07, 0.04]),
-        np.array([0.10, -0.08])
+        np.array([0.03, 0.02]),
+        np.array([-0.04, 0.02]),
+        np.array([0.05, -0.04])
     ]
     eps = 1e-6
 
@@ -57,9 +57,9 @@ def test_forward_kinematics_recovery(kin):
     """FK solver must recover true coordinates from computed cable lengths."""
     known_targets = [
         np.array([0.0, 0.0]),
-        np.array([0.05, 0.04]),
-        np.array([-0.06, -0.05]),
-        np.array([0.12, -0.08])
+        np.array([0.04, 0.03]),
+        np.array([-0.04, -0.03]),
+        np.array([0.06, -0.04])
     ]
 
     for q_true in known_targets:

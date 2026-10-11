@@ -12,7 +12,7 @@ class SceneManager {
 
     // Perspective camera positioned above and slightly in front of the horizontal CDPR plane
     this.camera = new THREE.PerspectiveCamera(45, width / height, 0.01, 20.0);
-    this.camera.position.set(0.0, -0.65, 0.75); // Look down toward horizontal XY plane
+    this.camera.position.set(0.0, -0.36, 0.44); // Look down toward horizontal XY plane matching reference photo
     this.camera.up.set(0, 0, 1); // Z is normal to horizontal motion plane
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });

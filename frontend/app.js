@@ -35,10 +35,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   } catch (err) {
     console.warn("Failed fetching config from backend, using default fallback:", err);
     config = {
-      frame: { width_m: 0.500, height_m: 0.400, depth_m: 0.120 },
-      platform: { width_m: 0.100, height_m: 0.080, thickness_m: 0.006 },
+      frame: { width_m: 0.300, height_m: 0.200, depth_m: 0.080 },
+      platform: { width_m: 0.060, height_m: 0.040, thickness_m: 0.005 },
       actuators: { drum_radius_m: 0.010 },
-      workspace: { x_min_m: -0.18, x_max_m: 0.18, y_min_m: -0.14, y_max_m: 0.14 }
+      workspace: { x_min_m: -0.11, x_max_m: 0.11, y_min_m: -0.07, y_max_m: 0.07 }
     };
   }
 
