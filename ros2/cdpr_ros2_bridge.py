@@ -40,12 +40,17 @@ else:
             self.diag_pub = self.create_publisher(DiagnosticArray, '/diagnostics', 10)
 
             self.create_subscription(Point, '/cdpr/command/move', self.on_move_cmd, 10)
+            self.create_subscription(Point, '/cdpr/command/target', self.on_move_cmd, 10)
             self.get_logger().info('CDPR ROS 2 Bridge initialized. Connecting to simulator...')
 
         def on_move_cmd(self, msg: Point):
-            # Forward coordinate to simulator REST API
+            # Convert standard ROS 2 SI meters to mm if magnitude <= 1.0 m, else preserve mm
+            x_mm = msg.x * 1000.0 if abs(msg.x) <= 1.0 else msg.x
+            y_mm = msg.y * 1000.0 if abs(msg.y) <= 1.0 else msg.y
+            speed_mm_s = msg.z * 1000.0 if (0.0 < msg.z <= 1.0) else (msg.z if msg.z > 1.0 else 80.0)
+
             url = "http://localhost:8000/api/command/move"
-            payload = json.dumps({"x_mm": msg.x, "y_mm": msg.y, "speed_mm_s": 80.0}).encode('utf-8')
+            payload = json.dumps({"x_mm": x_mm, "y_mm": y_mm, "speed_mm_s": speed_mm_s}).encode('utf-8')
             req = urllib.request.Request(url, data=payload, headers={'Content-Type': 'application/json'}, method='POST')
             try:
                 with urllib.request.urlopen(req) as resp:
