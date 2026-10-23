@@ -76,16 +76,40 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (data.status === 'rejected_unverified') {
           showMessage(`⚠️ Hardware Motion Blocked: ${data.message}`, true);
           selectMode.value = 'SIMULATION';
+          // Immediately synchronize backend back to safe SIMULATION mode
+          try {
+            await fetch(`${apiBase}/mode`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ mode: 'SIMULATION' })
+            });
+          } catch (_) {}
           if (provenancePill) {
-            provenancePill.textContent = 'BLOCKED';
-            provenancePill.className = 'provenance-pill blocked';
+            provenancePill.textContent = 'SIMULATED';
+            provenancePill.className = 'provenance-pill simulated';
           }
         } else {
           showMessage(data.message, false);
+          if (provenancePill) {
+            if (data.operating_mode === 'SIMULATION') {
+              provenancePill.textContent = 'SIMULATED';
+              provenancePill.className = 'provenance-pill simulated';
+            } else {
+              provenancePill.textContent = 'HARDWARE';
+              provenancePill.className = 'provenance-pill measured';
+            }
+          }
         }
       } catch (err) {
         showMessage(`Mode change error: ${err.message}`, true);
         selectMode.value = 'SIMULATION';
+        try {
+          await fetch(`${apiBase}/mode`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mode: 'SIMULATION' })
+          });
+        } catch (_) {}
       }
     });
   }
