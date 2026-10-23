@@ -37,11 +37,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   const tab3d = document.getElementById('tab-3d');
   const tab2d = document.getElementById('tab-2d');
   const tabBlueprint = document.getElementById('tab-blueprint');
+  const tabAnalytics = document.getElementById('tab-analytics');
   const btnExportBlueprint = document.getElementById('btn-export-blueprint');
 
   const threeViewport = document.getElementById('three-viewport');
   const engViewport = document.getElementById('engineering-viewport');
   const blueprintViewport = document.getElementById('blueprint-viewport');
+  const analyticsViewport = document.getElementById('analytics-viewport');
   const canvas2d = document.getElementById('canvas-2d');
   const canvasBlueprint = document.getElementById('canvas-blueprint');
 
@@ -303,7 +305,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 7. Initialize Controls
   const controlsMgr = new ControlsManager(apiBase, showMessage);
 
-  // 7. Multi-view mode switcher (3D, 2D Sim, Blueprint)
+  // 7. Multi-view mode switcher (3D, 2D Sim, Blueprint, Analytics)
   let activeView = '3d';
 
   function setView(view) {
@@ -313,11 +315,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     tab3d.classList.toggle('active', view === '3d');
     tab2d.classList.toggle('active', view === '2d');
     tabBlueprint.classList.toggle('active', view === 'blueprint');
+    if (tabAnalytics) tabAnalytics.classList.toggle('active', view === 'analytics');
 
     // Update viewport visibility
     threeViewport.classList.toggle('hidden', view !== '3d');
     engViewport.classList.toggle('hidden', view !== '2d');
     blueprintViewport.classList.toggle('hidden', view !== 'blueprint');
+    if (analyticsViewport) analyticsViewport.classList.toggle('hidden', view !== 'analytics');
 
     if (view === '3d') {
       sceneMgr.onResize();
@@ -325,12 +329,47 @@ document.addEventListener('DOMContentLoaded', async () => {
       engView.render();
     } else if (view === 'blueprint') {
       blueprintView.render();
+    } else if (view === 'analytics') {
+      plotMgr.render();
     }
   }
 
   tab3d.addEventListener('click', () => setView('3d'));
   tab2d.addEventListener('click', () => setView('2d'));
   tabBlueprint.addEventListener('click', () => setView('blueprint'));
+  if (tabAnalytics) tabAnalytics.addEventListener('click', () => setView('analytics'));
+
+  // Analytics Controls Integration
+  const selectChartWindow = document.getElementById('select-chart-window');
+  if (selectChartWindow) {
+    selectChartWindow.addEventListener('change', (e) => {
+      plotMgr.setWindow(parseInt(e.target.value));
+    });
+  }
+
+  const btnChartPause = document.getElementById('btn-chart-pause');
+  if (btnChartPause) {
+    btnChartPause.addEventListener('click', () => {
+      const isPaused = plotMgr.togglePause();
+      showMessage(isPaused ? 'Telemetry charts paused' : 'Telemetry charts streaming resumed');
+    });
+  }
+
+  const btnChartClear = document.getElementById('btn-chart-clear');
+  if (btnChartClear) {
+    btnChartClear.addEventListener('click', () => {
+      plotMgr.clear();
+      showMessage('Telemetry chart history and peaks cleared');
+    });
+  }
+
+  const btnChartExport = document.getElementById('btn-chart-export');
+  if (btnChartExport) {
+    btnChartExport.addEventListener('click', () => {
+      plotMgr.exportCSV();
+      showMessage('Exported telemetry time-series to CSV');
+    });
+  }
 
   // Toggle Workbench Table Base in 3D View
   const btnToggleTable = document.getElementById('btn-toggle-table');
@@ -348,6 +387,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       blueprintView.render();
     } else if (activeView === '2d') {
       engView.render();
+    } else if (activeView === 'analytics') {
+      plotMgr.render();
     }
   });
 

@@ -43,6 +43,7 @@
           <button id="tab-3d" class="btn-tab active" title="3D Three.js Perspective">3D View</button>
           <button id="tab-2d" class="btn-tab" title="2D Orthographic Simulation">2D Sim</button>
           <button id="tab-blueprint" class="btn-tab blueprint" title="Full CAD Blueprint with Complete Dimensions">📐 Blueprint (CAD)</button>
+          <button id="tab-analytics" class="btn-tab analytics" title="Dedicated Real-Time Kinematics & Actuator Analytics">📊 Analytics</button>
         </div>
         <button id="btn-toggle-table" class="btn-toggle-table" title="Toggle wooden workbench table base">🪵 Table Base: OFF</button>
         <button id="btn-header-reset" class="btn-warning-reset" title="Clear faults and reset robot to origin (0,0)">🔄 Reset State</button>
@@ -78,6 +79,181 @@
             </div>
           </div>
           <canvas id="canvas-blueprint"></canvas>
+        </div>
+
+        <!-- Dedicated Analytics & Diagnostics Dashboard Viewport -->
+        <div id="analytics-viewport" class="viewport hidden analytics-dashboard">
+          <div class="analytics-header">
+            <div class="analytics-title-group">
+              <span class="analytics-badge">LIVE STREAM</span>
+              <h2>Kinematic & Actuator Analytics Dashboard</h2>
+              <span class="analytics-sub">100 Hz Deterministic Physics • 30 Hz Telemetry Engine</span>
+            </div>
+            <div class="analytics-controls">
+              <div class="analytics-ctrl-group">
+                <label for="select-chart-window">Window:</label>
+                <select id="select-chart-window" class="select-chart-window" title="Chart Time Window">
+                  <option value="120" selected>120 samples (~4s)</option>
+                  <option value="300">300 samples (~10s)</option>
+                  <option value="600">600 samples (~20s)</option>
+                </select>
+              </div>
+              <button id="btn-chart-pause" class="btn-sm btn-analytics-action" title="Pause or Resume graph updates">⏸️ Pause</button>
+              <button id="btn-chart-clear" class="btn-sm btn-analytics-action" title="Clear chart history">🧹 Clear</button>
+              <button id="btn-chart-export" class="btn-sm btn-cyan" title="Export current telemetry to CSV">💾 Export CSV</button>
+            </div>
+          </div>
+
+          <!-- KPI Summary Cards Row -->
+          <div class="analytics-kpi-row">
+            <div class="kpi-card">
+              <div class="kpi-label">Tracking Error (Max)</div>
+              <div class="kpi-value text-accent" id="kpi-max-error">0.00 mm</div>
+              <div class="kpi-sub" id="kpi-curr-error">Curr: 0.00 mm</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Peak Cable Tension</div>
+              <div class="kpi-value text-gold" id="kpi-max-tension">0.0 N</div>
+              <div class="kpi-sub">Limit: 300.0 N</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Peak Motor Speed</div>
+              <div class="kpi-value text-blue" id="kpi-max-rpm">0.0 RPM</div>
+              <div class="kpi-sub">Limit: ±300.0 RPM</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Peak Motor Torque</div>
+              <div class="kpi-value text-green" id="kpi-max-torque">0.00 Nm</div>
+              <div class="kpi-sub">Limit: 0.40 Nm</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Jacobian Cond. Number</div>
+              <div class="kpi-value text-cyan" id="kpi-cond-no">1.00</div>
+              <div class="kpi-sub" id="kpi-cond-eval">Well-Conditioned</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Tension Feasibility</div>
+              <div class="kpi-value text-green" id="kpi-feas-badge">FEASIBLE</div>
+              <div class="kpi-sub" id="kpi-feas-sub">T_min ≥ 2.0 N</div>
+            </div>
+          </div>
+
+          <!-- Main Analytics Charts Grid -->
+          <div class="analytics-charts-grid">
+            <!-- Chart 1: Position & Tracking Error Dynamics -->
+            <div class="analytics-chart-panel card">
+              <div class="chart-header">
+                <div class="chart-title-box">
+                  <h4>Position Tracking & Error Dynamics</h4>
+                  <span class="chart-legend">
+                    <span class="legend-item"><span class="legend-color dot-red"></span> Error Magnitude</span>
+                    <span class="legend-item"><span class="legend-color dot-cyan"></span> X Pos</span>
+                    <span class="legend-item"><span class="legend-color dot-green"></span> Y Pos</span>
+                  </span>
+                </div>
+                <span class="chart-unit">Unit: mm</span>
+              </div>
+              <div class="chart-canvas-wrap">
+                <canvas id="plot-pos-canvas"></canvas>
+              </div>
+            </div>
+
+            <!-- Chart 2: Cable Tensions T1..T4 -->
+            <div class="analytics-chart-panel card">
+              <div class="chart-header">
+                <div class="chart-title-box">
+                  <h4>Cable Tensions (T1..T4)</h4>
+                  <span class="chart-legend">
+                    <span class="legend-item"><span class="legend-color dot-c1"></span> C1 (TL)</span>
+                    <span class="legend-item"><span class="legend-color dot-c2"></span> C2 (TR)</span>
+                    <span class="legend-item"><span class="legend-color dot-c3"></span> C3 (BR)</span>
+                    <span class="legend-item"><span class="legend-color dot-c4"></span> C4 (BL)</span>
+                    <span class="legend-item"><span class="legend-color dot-limit"></span> Max Limit (300N)</span>
+                  </span>
+                </div>
+                <span class="chart-unit">Unit: Newtons (N)</span>
+              </div>
+              <div class="chart-canvas-wrap">
+                <canvas id="plot-tension-canvas"></canvas>
+              </div>
+            </div>
+
+            <!-- Chart 3: Motor Rotational Speeds -->
+            <div class="analytics-chart-panel card">
+              <div class="chart-header">
+                <div class="chart-title-box">
+                  <h4>Motor Rotational Speeds (RPM1..RPM4)</h4>
+                  <span class="chart-legend">
+                    <span class="legend-item"><span class="legend-color dot-c1"></span> Motor 1</span>
+                    <span class="legend-item"><span class="legend-color dot-c2"></span> Motor 2</span>
+                    <span class="legend-item"><span class="legend-color dot-c3"></span> Motor 3</span>
+                    <span class="legend-item"><span class="legend-color dot-c4"></span> Motor 4</span>
+                    <span class="legend-item"><span class="legend-color dot-limit"></span> Limit (±300 RPM)</span>
+                  </span>
+                </div>
+                <span class="chart-unit">Unit: RPM</span>
+              </div>
+              <div class="chart-canvas-wrap">
+                <canvas id="plot-rpm-canvas"></canvas>
+              </div>
+            </div>
+
+            <!-- Chart 4: Actuator Torques -->
+            <div class="analytics-chart-panel card">
+              <div class="chart-header">
+                <div class="chart-title-box">
+                  <h4>Actuator Spool Torques (τ1..τ4)</h4>
+                  <span class="chart-legend">
+                    <span class="legend-item"><span class="legend-color dot-c1"></span> Spool 1</span>
+                    <span class="legend-item"><span class="legend-color dot-c2"></span> Spool 2</span>
+                    <span class="legend-item"><span class="legend-color dot-c3"></span> Spool 3</span>
+                    <span class="legend-item"><span class="legend-color dot-c4"></span> Spool 4</span>
+                    <span class="legend-item"><span class="legend-color dot-limit"></span> Rated (0.4 Nm)</span>
+                  </span>
+                </div>
+                <span class="chart-unit">Unit: Nm</span>
+              </div>
+              <div class="chart-canvas-wrap">
+                <canvas id="plot-torque-canvas"></canvas>
+              </div>
+            </div>
+
+            <!-- Chart 5: Jacobian Conditioning & FK Residuals -->
+            <div class="analytics-chart-panel card">
+              <div class="chart-header">
+                <div class="chart-title-box">
+                  <h4>Jacobian Conditioning & FK Residual Norm</h4>
+                  <span class="chart-legend">
+                    <span class="legend-item"><span class="legend-color dot-cyan"></span> Cond. No. κ(J)</span>
+                    <span class="legend-item"><span class="legend-color dot-red"></span> FK Residual (mm)</span>
+                  </span>
+                </div>
+                <span class="chart-unit">Ratio / mm</span>
+              </div>
+              <div class="chart-canvas-wrap">
+                <canvas id="plot-cond-canvas"></canvas>
+              </div>
+            </div>
+
+            <!-- Chart 6: Cable Payout / Retraction Velocity -->
+            <div class="analytics-chart-panel card">
+              <div class="chart-header">
+                <div class="chart-title-box">
+                  <h4>Cable Velocities (dl/dt)</h4>
+                  <span class="chart-legend">
+                    <span class="legend-item"><span class="legend-color dot-c1"></span> dl1/dt</span>
+                    <span class="legend-item"><span class="legend-color dot-c2"></span> dl2/dt</span>
+                    <span class="legend-item"><span class="legend-color dot-c3"></span> dl3/dt</span>
+                    <span class="legend-item"><span class="legend-color dot-c4"></span> dl4/dt</span>
+                  </span>
+                </div>
+                <span class="chart-unit">Unit: mm/s</span>
+              </div>
+              <div class="chart-canvas-wrap">
+                <canvas id="plot-rates-canvas"></canvas>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -297,26 +473,6 @@
         </div>
       </aside>
     </div>
-
-    <!-- Bottom Engineering Diagnostic Graphs Bar -->
-    <section class="bottom-plots card">
-      <div class="plot-panel">
-        <h4>Position & Tracking Error (mm)</h4>
-        <canvas id="plot-pos-canvas"></canvas>
-      </div>
-      <div class="plot-panel">
-        <h4>Cable Tensions T1..T4 (N) [Limit: 300 N]</h4>
-        <canvas id="plot-tension-canvas"></canvas>
-      </div>
-      <div class="plot-panel">
-        <h4>Motor Speeds RPM1..RPM4 [Limit: 300 RPM]</h4>
-        <canvas id="plot-rpm-canvas"></canvas>
-      </div>
-      <div class="plot-panel">
-        <h4>Actuator Torques (Nm) [Limit: 0.4 Nm]</h4>
-        <canvas id="plot-torque-canvas"></canvas>
-      </div>
-    </section>
   </div>
 
   <!-- Modular Scripts -->
