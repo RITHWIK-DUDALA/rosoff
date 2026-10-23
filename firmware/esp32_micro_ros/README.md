@@ -9,13 +9,13 @@ This firmware project implements the embedded micro-ROS client running on the ES
 
 ```
 +-------------------------------------------------------------+
-| HOST COMPUTER (Linux / Ubuntu 22.04 LTS or WSL2)            |
-| ROS 2 Humble / Iron Desktop                                 |
+| HOST COMPUTER (Ubuntu 24.04 LTS Jazzy / Ubuntu 22.04 LTS)   |
+| ROS 2 Jazzy / Humble Desktop                                |
 |                                                             |
 |   [CDPR Kinematics & Planner Nodes]                         |
 |                 | (ROS 2 Topics)                            |
 |                 v                                           |
-|   [micro-ROS Agent] (micro_ros_agent package)               |
+|   [micro-ROS Agent] (micro_ros_agent package / Docker)      |
 +-----------------|-------------------------------------------+
                   | Supported Transport:
                   |   Option A: Serial UART over USB (115200 or 921600 baud)
@@ -52,11 +52,11 @@ This firmware project implements the embedded micro-ROS client running on the ES
 | Component | Target Version | Status |
 |---|---|---|
 | Microcontroller Target | ESP32-WROOM-32D / ESP32-S3 | Provisional |
-| Embedded OS | FreeRTOS (ESP-IDF v5.1.2 or v5.2.1) | Verified Supported |
-| micro-ROS Component | `micro_ros_espidf_component` (Humble/Iron) | Verified Supported |
-| ROS 2 Distribution | ROS 2 Humble Hawksbill / Iron Irwini | Verified Supported |
-| Host Compiler | GCC 12.2.0 (xtensa-esp32-elf) | Verified Supported |
-| CMake | >= 3.16 | Verified Supported |
+| Embedded OS | FreeRTOS (ESP-IDF v5.1.2 or v5.2.x) | Compatible Reference |
+| micro-ROS Component | `micro_ros_espidf_component` (`jazzy` or `humble` branch) | Compatible Reference |
+| Host ROS 2 Distribution | ROS 2 Jazzy (Ubuntu 24.04) / ROS 2 Humble (Ubuntu 22.04) | Primary Target: Jazzy |
+| Host Python | Python 3.12 (Ubuntu 24.04) / Python 3.10 (Ubuntu 22.04) | Verified on host |
+| CMake | >= 3.16 | Standard |
 
 ---
 

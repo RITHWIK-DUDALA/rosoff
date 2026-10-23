@@ -1,4 +1,4 @@
-# micro-ROS & ESP32 Embedded Setup Guide
+# micro-ROS & ESP32 Embedded Setup Guide: Ubuntu 24.04 (Jazzy) & Ubuntu 22.04 (Humble)
 
 ## 1. Embedded Firmware Overview
 
@@ -10,16 +10,20 @@ The ESP32 communicates with the host computer (running the micro-ROS Agent) and 
 
 ## 2. Hardware Compatibility & Toolchain Matrix
 
-In accordance with Rule 0.2 (no invented hardware specifications), hardware targets are categorized by verification status:
+In accordance with Rule 0.2 (no invented hardware specifications), hardware targets and toolchain versions are categorized by verification status:
 
 | Item | Target / Recommendation | Verification Status | Notes |
 |---|---|---|---|
 | **MCU Model** | ESP32-WROOM-32D / ESP32-S3 | **Unverified / Provisional** | Standard dual-core Xtensa @ 240 MHz. |
-| **ESP-IDF Version** | ESP-IDF v5.1.x / v5.2.x | **Compatible Reference** | Official LTS release. |
-| **micro-ROS Component** | `micro_ros_espidf_component` (Humble branch) | **Compatible Reference** | Aligned with ROS 2 Humble. |
+| **Host Environment** | Ubuntu 24.04 LTS (Python 3.12) / Ubuntu 22.04 LTS | **Documented Target** | Tested on development host. |
+| **ESP-IDF Version** | ESP-IDF v5.1.x / v5.2.x | **Compatible Reference** | Required for Python 3.12 compatibility on Ubuntu 24.04. |
+| **micro-ROS Component** | `micro_ros_espidf_component` (`jazzy` or `humble` branch) | **Compatible Reference** | Branch must match host ROS 2 distribution. |
+| **Host ROS 2 Distribution** | ROS 2 Jazzy (Ubuntu 24.04) / ROS 2 Humble (Ubuntu 22.04) | **Supported Distributions** | Primary target is Jazzy. |
 | **Transport** | UART / USB-Serial @ 115200 or 921600 baud | **Default Recommended** | Preferred over Wi-Fi for determinism. |
 | **Secondary Transport** | Wi-Fi UDP (Static IP recommended) | **Alternative** | Subject to wireless jitter and packet drop. |
 | **Servo Drives** | 4x Closed-Loop Servo Drives | **UNKNOWN / Unverified** | Exact protocol (CANopen, Modbus, Step/Dir) pending. |
+
+> **Critical Ubuntu 24.04 Toolchain Notice:** Ubuntu 24.04 ships with Python 3.12. ESP-IDF v4.x is incompatible with Python 3.12 due to the removal of `distutils`. Use ESP-IDF v5.1.2 or newer.
 
 ---
 
@@ -52,9 +56,13 @@ stateDiagram-v2
 
 ## 4. Building and Flashing the Firmware
 
-### 4.1 Prerequisites (Host Machine)
-1. Install ESP-IDF v5.1:
+### 4.1 Prerequisites (Ubuntu 24.04 Host)
+1. Install ESP-IDF v5.1+ dependencies and clone ESP-IDF:
    ```bash
+   sudo apt update && sudo apt install -y \
+       git wget flex bison gperf python3 python3-pip python3-venv \
+       cmake ninja-build ccache libffi-dev libssl-dev dfu-util libusb-1.0-0
+   
    mkdir -p ~/esp
    cd ~/esp
    git clone -b v5.1.2 --recursive https://github.com/espressif/esp-idf.git
@@ -63,14 +71,18 @@ stateDiagram-v2
    source export.sh
    ```
 
-2. Clone micro-ROS component into firmware directory:
+2. Clone micro-ROS component matching your ROS 2 distribution:
    ```bash
    cd rosoff/firmware/esp32_micro_ros
-   git clone -b humble https://github.com/micro-ROS/micro_ros_espidf_component.git components/micro_ros_espidf_component
+   
+   # For ROS 2 Jazzy (Ubuntu 24.04):
+   git clone -b jazzy https://github.com/micro-ROS/micro_ros_espidf_component.git components/micro_ros_espidf_component
+   
+   # (Or for ROS 2 Humble):
+   # git clone -b humble https://github.com/micro-ROS/micro_ros_espidf_component.git components/micro_ros_espidf_component
    ```
 
 ### 4.2 Configuration
-Open the interactive menu:
 ```bash
 idf.py set-target esp32
 idf.py menuconfig
@@ -97,22 +109,31 @@ idf.py -p /dev/ttyUSB0 flash monitor
 
 The host computer bridges micro-ROS serial/UDP packets into standard ROS 2 topics.
 
-### 5.1 Using Docker (Recommended)
+### 5.1 Using Docker (Recommended for Jazzy on Ubuntu 24.04)
 ```bash
-# Serial transport
+# For ROS 2 Jazzy:
 docker run -it --rm --net=host --privileged -v /dev:/dev \
-    microros/micro-ros-agent:humble \
+    microros/micro-ros-agent:jazzy \
     serial --dev /dev/ttyUSB0 -b 115200
 
-# UDP transport
+# Over UDP/Wi-Fi:
 docker run -it --rm --net=host \
-    microros/micro-ros-agent:humble \
+    microros/micro-ros-agent:jazzy \
     udp4 --port 8888
 ```
 
-### 5.2 Using Built ROS 2 Package
-If installed locally via `ros-humble-micro-ros-agent`:
+*(For Humble: substitute image tag `microros/micro-ros-agent:humble`)*
+
+### 5.2 Building micro-ROS Agent from Source in ROS 2 Jazzy
+If Docker is not used, build the agent in your ROS 2 workspace:
 ```bash
+source /opt/ros/jazzy/setup.bash
+mkdir -p ~/microros_ws/src
+cd ~/microros_ws/src
+git clone -b jazzy https://github.com/micro-ROS/micro-ROS-Agent.git
+cd ~/microros_ws
+colcon build
+source install/setup.bash
 ros2 run micro_ros_agent micro_ros_agent serial --dev /dev/ttyUSB0 -b 115200
 ```
 

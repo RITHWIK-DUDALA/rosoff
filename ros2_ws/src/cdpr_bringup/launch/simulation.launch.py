@@ -17,7 +17,7 @@ def generate_launch_description():
     params_file = PathJoinSubstitution([pkg_bringup, 'config', 'ros2_params.yaml'])
 
     robot_description_content = Command([
-        PathJoinSubstitution([FindExecutable(name='xacro')]),
+        FindExecutable(name='xacro'),
         ' ',
         urdf_file
     ])

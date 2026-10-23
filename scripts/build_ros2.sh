@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build ROS 2 CDPR Workspace on Ubuntu Linux
+# Build ROS 2 CDPR Workspace on Ubuntu 24.04 (ROS 2 Jazzy) / Ubuntu 22.04 (ROS 2 Humble)
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -8,11 +8,20 @@ ROS2_DIR="$WORKSPACE_ROOT/ros2_ws"
 
 echo "=== Building CDPR ROS 2 Workspace ==="
 
+# Auto-source ROS 2 underlay if colcon/ros2 not already active in current shell
 if ! command -v colcon &> /dev/null; then
-    echo "Error: colcon not found in PATH."
-    echo "Please source your ROS 2 environment first, e.g.:"
-    echo "  source /opt/ros/humble/setup.bash"
-    exit 1
+    if [ -f /opt/ros/jazzy/setup.bash ]; then
+        echo "Auto-sourcing ROS 2 Jazzy (/opt/ros/jazzy/setup.bash)..."
+        source /opt/ros/jazzy/setup.bash
+    elif [ -f /opt/ros/humble/setup.bash ]; then
+        echo "Auto-sourcing ROS 2 Humble (/opt/ros/humble/setup.bash)..."
+        source /opt/ros/humble/setup.bash
+    else
+        echo "Error: colcon not found and no ROS 2 installation detected in /opt/ros/{jazzy,humble}."
+        echo "Please install ROS 2 Jazzy (Ubuntu 24.04) or source your environment:"
+        echo "  source /opt/ros/jazzy/setup.bash"
+        exit 1
+    fi
 fi
 
 cd "$ROS2_DIR"

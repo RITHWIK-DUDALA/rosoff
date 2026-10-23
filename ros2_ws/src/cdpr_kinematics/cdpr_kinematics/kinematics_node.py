@@ -63,6 +63,7 @@ class CDPRKinematicsNode:
         # ROS 2 Pub/Sub
         self.cable_pub = self.node.create_publisher(JointState, '/cdpr/cables/command', 10)
         self.target_sub = self.node.create_subscription(Point, '/cdpr/command/target', self.on_target, 10)
+        self.setpoint_sub = self.node.create_subscription(Point, '/cdpr/motion/setpoint', self.on_target, 10)
         self.val_srv = self.node.create_service(ValidateTarget, '/cdpr/validate_target', self.on_validate_target)
 
         self.node.get_logger().info("CDPR Kinematics Node initialized.")
