@@ -1,0 +1,190 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CDPRConfigurationSchema",
+  "description": "Validation schema for Planar Cable-Driven Parallel Robot (CDPR) configuration",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "robot_id",
+    "coordinate_system",
+    "frame",
+    "platform",
+    "guide",
+    "cables",
+    "actuators",
+    "motion_limits",
+    "workspace",
+    "safety",
+    "simulation"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "robot_id": {
+      "type": "string"
+    },
+    "units": {
+      "type": "object",
+      "required": ["internal_length", "internal_time", "internal_mass", "internal_force"],
+      "properties": {
+        "internal_length": { "type": "string", "enum": ["m"] },
+        "internal_time": { "type": "string", "enum": ["s"] },
+        "internal_mass": { "type": "string", "enum": ["kg"] },
+        "internal_force": { "type": "string", "enum": ["N"] },
+        "internal_angle": { "type": "string", "enum": ["rad"] },
+        "display_length": { "type": "string" },
+        "display_velocity": { "type": "string" },
+        "display_angular_velocity": { "type": "string" }
+      }
+    },
+    "coordinate_system": {
+      "type": "object",
+      "required": ["origin", "x_axis", "y_axis", "z_axis", "plane"],
+      "properties": {
+        "origin": { "type": "string", "enum": ["center_of_frame"] },
+        "x_axis": { "type": "string" },
+        "y_axis": { "type": "string" },
+        "z_axis": { "type": "string" },
+        "plane": { "type": "string", "enum": ["horizontal", "vertical"] }
+      }
+    },
+    "frame": {
+      "type": "object",
+      "required": ["width_m", "height_m", "depth_m", "anchors"],
+      "properties": {
+        "width_m": { "type": "number", "exclusiveMinimum": 0 },
+        "height_m": { "type": "number", "exclusiveMinimum": 0 },
+        "depth_m": { "type": "number", "exclusiveMinimum": 0 },
+        "anchors": {
+          "type": "object",
+          "required": ["C1", "C2", "C3", "C4"],
+          "properties": {
+            "C1": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 3 },
+            "C2": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 3 },
+            "C3": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 3 },
+            "C4": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 3 }
+          }
+        }
+      }
+    },
+    "platform": {
+      "type": "object",
+      "required": ["width_m", "height_m", "thickness_m", "mass_kg", "attachments"],
+      "properties": {
+        "width_m": { "type": "number", "exclusiveMinimum": 0 },
+        "height_m": { "type": "number", "exclusiveMinimum": 0 },
+        "thickness_m": { "type": "number", "exclusiveMinimum": 0 },
+        "mass_kg": { "type": "number", "exclusiveMinimum": 0 },
+        "inertia_z_kg_m2": { "type": "number", "minimum": 0 },
+        "attachments": {
+          "type": "object",
+          "required": ["C1", "C2", "C3", "C4"],
+          "properties": {
+            "C1": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 3 },
+            "C2": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 3 },
+            "C3": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 3 },
+            "C4": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 3 }
+          }
+        }
+      }
+    },
+    "guide": {
+      "type": "object",
+      "required": ["type", "constrained_dof", "free_dof"],
+      "properties": {
+        "type": { "type": "string" },
+        "diameter_m": { "type": "number", "exclusiveMinimum": 0 },
+        "constrained_dof": { "type": "object" },
+        "free_dof": { "type": "object" },
+        "friction_coefficient": { "type": "number", "minimum": 0 }
+      }
+    },
+    "cables": {
+      "type": "object",
+      "required": ["count", "model", "min_tension_N", "max_tension_N"],
+      "properties": {
+        "count": { "type": "integer", "enum": [4] },
+        "model": { "type": "string" },
+        "min_tension_N": { "type": "number", "minimum": 0 },
+        "max_tension_N": { "type": "number", "exclusiveMinimum": 0 },
+        "elastic_modulus_Pa": { "type": "number", "exclusiveMinimum": 0 },
+        "diameter_m": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "actuators": {
+      "type": "object",
+      "required": ["count", "drum_radius_m", "max_speed_rpm", "max_torque_Nm", "efficiency"],
+      "properties": {
+        "count": { "type": "integer", "enum": [4] },
+        "drum_radius_m": { "type": "number", "exclusiveMinimum": 0 },
+        "drum_inertia_kg_m2": { "type": "number", "minimum": 0 },
+        "max_speed_rpm": { "type": "number", "exclusiveMinimum": 0 },
+        "max_torque_Nm": { "type": "number", "exclusiveMinimum": 0 },
+        "efficiency": { "type": "number", "exclusiveMinimum": 0, "maximum": 1.0 },
+        "control_bandwidth_hz": { "type": "number", "exclusiveMinimum": 0 },
+        "verification_status": {
+          "type": "object",
+          "properties": {
+            "model_confirmed": { "type": "boolean" },
+            "torque_verified": { "type": "boolean" },
+            "speed_verified": { "type": "boolean" },
+            "encoder_verified": { "type": "boolean" }
+          }
+        }
+      }
+    },
+    "motion_limits": {
+      "type": "object",
+      "required": ["nominal_max_speed_m_s", "max_accel_m_s2", "max_jerk_m_s3"],
+      "properties": {
+        "nominal_max_speed_m_s": { "type": "number", "exclusiveMinimum": 0 },
+        "max_accel_m_s2": { "type": "number", "exclusiveMinimum": 0 },
+        "max_jerk_m_s3": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "workspace": {
+      "type": "object",
+      "required": ["safety_margin_m", "x_min_m", "x_max_m", "y_min_m", "y_max_m"],
+      "properties": {
+        "safety_margin_m": { "type": "number", "minimum": 0 },
+        "x_min_m": { "type": "number" },
+        "x_max_m": { "type": "number" },
+        "y_min_m": { "type": "number" },
+        "y_max_m": { "type": "number" }
+      }
+    },
+    "safety": {
+      "type": "object",
+      "required": [
+        "emergency_stop_software",
+        "emergency_stop_hardware_verified",
+        "safe_torque_off_available",
+        "require_homing_before_motion",
+        "watchdog_timeout_ms",
+        "stale_telemetry_timeout_s"
+      ],
+      "properties": {
+        "emergency_stop_software": { "type": "boolean" },
+        "emergency_stop_hardware_verified": { "type": "boolean" },
+        "safe_torque_off_available": { "type": "boolean" },
+        "require_homing_before_motion": { "type": "boolean" },
+        "watchdog_timeout_ms": { "type": "number", "exclusiveMinimum": 0 },
+        "stale_telemetry_timeout_s": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "simulation": {
+      "type": "object",
+      "required": ["timestep_s", "telemetry_rate_hz", "solver_tolerances"],
+      "properties": {
+        "timestep_s": { "type": "number", "exclusiveMinimum": 0, "maximum": 0.1 },
+        "telemetry_rate_hz": { "type": "integer", "exclusiveMinimum": 0 },
+        "solver_tolerances": {
+          "type": "object",
+          "required": ["fk_tol", "fk_max_iter", "tension_tol", "tension_max_iter", "equilibrium_residual_tol"]
+        }
+      }
+    }
+  }
+}

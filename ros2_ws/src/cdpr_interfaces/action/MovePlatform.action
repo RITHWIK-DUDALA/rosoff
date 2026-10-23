@@ -1,0 +1,18 @@
+# MovePlatform Action Definition for CDPR Point-to-Point Motion
+
+# Goal
+geometry_msgs/Point target_position
+float64 target_speed_m_s
+---
+# Result
+bool success
+string message
+geometry_msgs/Point final_position
+float64 final_tracking_error_m
+float64 total_duration_s
+---
+# Feedback
+geometry_msgs/Point current_position
+float64 current_tracking_error_m
+float64 progress_percentage
+float64 time_elapsed_s

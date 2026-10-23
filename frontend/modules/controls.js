@@ -105,6 +105,7 @@ class ControlsManager {
   }
 
   async sendMove(x_mm, y_mm, speed_mm_s) {
+    const feedbackBox = document.getElementById('coord-feedback-box');
     try {
       const res = await fetch(`${this.apiBase}/command/move`, {
         method: 'POST',
@@ -113,12 +114,26 @@ class ControlsManager {
       });
       const data = await res.json();
       if (!res.ok) {
-        this.onStatus(data.detail?.message || 'Move rejected', true);
+        const errMsg = data.detail?.message || 'Move rejected: Outside safe workspace limits';
+        this.onStatus(errMsg, true);
+        if (feedbackBox) {
+          feedbackBox.textContent = `❌ ${errMsg}`;
+          feedbackBox.className = 'coord-feedback-box error';
+        }
       } else {
-        this.onStatus(`Target accepted: [${x_mm}, ${y_mm}] mm`, false);
+        const okMsg = `Target accepted: Moving to [${x_mm}, ${y_mm}] mm`;
+        this.onStatus(okMsg, false);
+        if (feedbackBox) {
+          feedbackBox.textContent = `✅ ${okMsg}`;
+          feedbackBox.className = 'coord-feedback-box success';
+        }
       }
     } catch (e) {
       this.onStatus(`Command error: ${e.message}`, true);
+      if (feedbackBox) {
+        feedbackBox.textContent = `❌ Error: ${e.message}`;
+        feedbackBox.className = 'coord-feedback-box error';
+      }
     }
   }
 

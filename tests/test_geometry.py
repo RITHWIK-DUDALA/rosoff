@@ -1,4 +1,4 @@
-"""Unit tests for robot geometry and coordinate conventions."""
+"""Unit tests for robot geometry and coordinate conventions based on canonical 500x400 mm frame."""
 import pytest
 import numpy as np
 from backend.cdpr.config import load_robot_config
@@ -7,32 +7,36 @@ from backend.cdpr.geometry import Geometry
 
 @pytest.fixture
 def robot():
-    cfg = load_robot_config("robot_config.yaml")
+    cfg = load_robot_config("config/robot_config.yaml")
     return Geometry(cfg)
 
 
 def test_anchor_positions(robot):
-    """Verify the four configured anchor positions in meters."""
-    # C1: (-0.15,  0.10)
-    # C2: ( 0.15,  0.10)
-    # C3: ( 0.15, -0.10)
-    # C4: (-0.15, -0.10)
+    """Verify the four configured anchor positions in meters (canonical 500x400 mm frame)."""
+    # C1: (-0.25,  0.20)
+    # C2: ( 0.25,  0.20)
+    # C3: ( 0.25, -0.20)
+    # C4: (-0.25, -0.20)
     expected = np.array([
-        [-0.15,  0.10],
-        [ 0.15,  0.10],
-        [ 0.15, -0.10],
-        [-0.15, -0.10]
+        [-0.25,  0.20],
+        [ 0.25,  0.20],
+        [ 0.25, -0.20],
+        [-0.25, -0.20]
     ])
     np.testing.assert_allclose(robot.anchors, expected, atol=1e-6)
 
 
 def test_platform_attachments(robot):
-    """Verify local platform attachment positions."""
+    """Verify local platform attachment positions (canonical 100x80 mm platform)."""
+    # C1: (-0.05,  0.04)
+    # C2: ( 0.05,  0.04)
+    # C3: ( 0.05, -0.04)
+    # C4: (-0.05, -0.04)
     expected = np.array([
-        [-0.03,  0.02],
-        [ 0.03,  0.02],
-        [ 0.03, -0.02],
-        [-0.03, -0.02]
+        [-0.05,  0.04],
+        [ 0.05,  0.04],
+        [ 0.05, -0.04],
+        [-0.05, -0.04]
     ])
     np.testing.assert_allclose(robot.attachments, expected, atol=1e-6)
 
@@ -41,9 +45,9 @@ def test_home_cable_lengths_and_symmetry(robot):
     """Verify all four cable lengths at center home position [0, 0] are identical and correct."""
     q_home = np.array([0.0, 0.0])
     lengths = robot.cable_lengths(q_home)
-    # At home: dx = 0.15 - 0.03 = 0.12 m, dy = 0.10 - 0.02 = 0.08 m
-    # L = sqrt(0.12^2 + 0.08^2) = sqrt(0.0144 + 0.0064) = sqrt(0.0208) ≈ 0.144222 m
-    expected_L = np.sqrt(0.12**2 + 0.08**2)
+    # At home: dx = 0.25 - 0.05 = 0.20 m, dy = 0.20 - 0.04 = 0.16 m
+    # L = sqrt(0.20^2 + 0.16^2) = sqrt(0.0400 + 0.0256) = sqrt(0.0656) ≈ 0.256125 m
+    expected_L = np.sqrt(0.20**2 + 0.16**2)
     assert len(lengths) == 4
     for l in lengths:
         assert pytest.approx(expected_L, abs=1e-5) == l
@@ -56,6 +60,7 @@ def test_known_coordinates_lengths(robot):
     """Verify cable lengths at non-symmetric coordinate [0.03, -0.01] m."""
     q = np.array([0.03, -0.01])
     lengths = robot.cable_lengths(q)
-    # C1: P1 = [0, 0.01], A1 = [-0.15, 0.10] -> dx = -0.15, dy = 0.09 -> L1 = sqrt(0.15^2 + 0.09^2)
-    l1_exp = np.hypot(-0.15, 0.09)
+    # C1: P1 = [0.03 - 0.05, -0.01 + 0.04] = [-0.02, 0.03]
+    # A1 = [-0.25, 0.20] -> dx = -0.23, dy = 0.17 -> L1 = sqrt(0.23^2 + 0.17^2)
+    l1_exp = np.hypot(-0.23, 0.17)
     assert pytest.approx(l1_exp, abs=1e-5) == lengths[0]

@@ -1,12 +1,14 @@
-# Byte-compiled / optimized / DLL files
+# ==============================================================================
+# Cross-Platform .gitignore for CDPR Platform (Windows & Ubuntu)
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# Python & Bytecode
+# ------------------------------------------------------------------------------
 __pycache__/
 *.py[cod]
 *$py.class
-
-# C extensions
 *.so
-
-# Distribution / packaging
 .Python
 build/
 develop-eggs/
@@ -23,26 +25,19 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-
-# PyInstaller
-*.manifest
-*.spec
-
-# Unit test / coverage reports
-htmlcov/
+.pytest_cache/
 .tox/
 .nox/
 .coverage
 .coverage.*
-.cache
+htmlcov/
 nosetests.xml
 coverage.xml
 *.cover
 *.py,cover
 .hypothesis/
-.pytest_cache/
 
-# Environments
+# Python Virtual Environments
 .env
 .venv
 env/
@@ -51,14 +46,68 @@ ENV/
 env.bak/
 venv.bak/
 
-# Editor / IDE directories & files
+# ------------------------------------------------------------------------------
+# Node.js & Frontend
+# ------------------------------------------------------------------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+frontend/dist/
+
+# ------------------------------------------------------------------------------
+# ROS 2 Build, Install, and Log Artifacts
+# ------------------------------------------------------------------------------
+ros2_ws/build/
+ros2_ws/install/
+ros2_ws/log/
+ros2_ws/.colcon/
+
+# ------------------------------------------------------------------------------
+# ESP32 / ESP-IDF / micro-ROS Build Artifacts
+# ------------------------------------------------------------------------------
+firmware/**/build/
+firmware/**/sdkconfig.old
+firmware/**/dependencies.lock
+firmware/**/managed_components/
+firmware/esp32_micro_ros/build/
+
+# ------------------------------------------------------------------------------
+# Local Hardware Configuration & Secrets (Never commit secrets)
+# ------------------------------------------------------------------------------
+config/hardware_profile.yaml
+!config/hardware_profile.example.yaml
+.env.local
+.env.*.local
+
+# ------------------------------------------------------------------------------
+# Operating System Artifacts (Windows, Linux, macOS)
+# ------------------------------------------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+*~
+*.swp
+*.swo
+.directory
+
+# ------------------------------------------------------------------------------
+# Editor & IDE Directories
+# ------------------------------------------------------------------------------
 .vscode/
 .idea/
 *.sublime-project
 *.sublime-workspace
-.DS_Store
-Thumbs.db
-desktop.ini
 
-# Logs and runtime artifacts
+# ------------------------------------------------------------------------------
+# Logs & Scratch
+# ------------------------------------------------------------------------------
 *.log
+scratch/

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Engineering Planar Cable Robot Simulator (CDPR)</title>
   <meta name="description" content="Engineering-grade 2-DOF planar Cable-Driven Parallel Robot (CDPR) simulator with inverse/forward kinematics, tension allocation, and live telemetry.">
-  <link rel="stylesheet" href="style.css?v=8">
+  <link rel="stylesheet" href="style.css?v=10">
   <!-- Load Three.js and OrbitControls -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -26,6 +26,14 @@
         <div class="status-indicator">
           <span class="status-dot" id="connection-dot"></span>
           <span class="status-label" id="connection-status">CONNECTING...</span>
+        </div>
+        <div class="operating-mode-box">
+          <label for="select-mode" class="mode-label">Mode:</label>
+          <select id="select-mode" class="select-mode" title="Select Operating Mode">
+            <option value="SIMULATION" selected>Mode A: SIMULATION</option>
+            <option value="HARDWARE">Mode B: HARDWARE</option>
+          </select>
+          <span class="provenance-pill simulated" id="provenance-pill">SIMULATED</span>
         </div>
         <div class="mode-pill" id="controller-mode-pill">IDLE</div>
         <div class="sim-time" id="sim-time-display">T+ 0.00 s</div>
@@ -51,6 +59,12 @@
 
         <!-- 2D Dimensioned Engineering Viewport -->
         <div id="engineering-viewport" class="viewport hidden">
+          <div class="viewport-overlay">
+            <div class="blueprint-actions">
+              <button id="btn-2d-clear-trail" class="btn-sm btn-cyan-outline" title="Clear blue pen drawing path">🧹 Clear Blue Trail</button>
+              <button id="btn-2d-clear-wps" class="btn-sm btn-red-outline" title="Clear waypoints">✕ Clear Points</button>
+            </div>
+          </div>
           <canvas id="canvas-2d"></canvas>
         </div>
 
@@ -58,6 +72,8 @@
         <div id="blueprint-viewport" class="viewport hidden">
           <div class="viewport-overlay">
             <div class="blueprint-actions">
+              <button id="btn-blueprint-clear-trail" class="btn-sm btn-cyan-outline" title="Clear blue pen drawing path">🧹 Clear Blue Trail</button>
+              <button id="btn-blueprint-clear-wps" class="btn-sm btn-red-outline" title="Clear waypoints">✕ Clear Points</button>
               <button id="btn-export-blueprint" class="btn-sm btn-cyan" title="Export high-resolution PNG">Export Blueprint (PNG)</button>
             </div>
           </div>
@@ -94,6 +110,7 @@
                 <button type="submit" id="btn-move" class="btn-primary">Execute Move</button>
                 <button type="button" id="btn-home" class="btn-secondary">Home (0,0)</button>
               </div>
+              <div id="coord-feedback-box" class="coord-feedback-box">Valid range: X ∈ [-180, +180] mm, Y ∈ [-140, +140] mm</div>
             </form>
 
             <!-- Jogging Grid -->
@@ -155,8 +172,8 @@
             <div class="waypoints-summary">
               <div class="wps-count">Waypoints: <strong id="lbl-wps-count">0</strong></div>
               <div class="wps-actions">
-                <button id="btn-clear-wps" class="btn-xs btn-outline-danger" title="Clear all waypoints">Clear Points</button>
-                <button id="btn-clear-trail" class="btn-xs btn-outline-secondary" title="Clear pen drawing trail">Clear Trail</button>
+                <button id="btn-clear-trail" class="btn-clear-blue" title="Clear blue pen drawing path">🧹 Clear Blue Trail</button>
+                <button id="btn-clear-wps" class="btn-clear-points" title="Clear all waypoints">✕ Clear Points</button>
               </div>
             </div>
 
@@ -249,15 +266,23 @@
               </tbody>
             </table>
 
-            <!-- Platform Kinematic Coordinates -->
+            <!-- Platform Kinematic Coordinates & Provenance -->
             <div class="kinematic-summary">
               <div class="stat-card">
-                <div class="stat-label">Platform Pos [X, Y]</div>
+                <div class="stat-label">Commanded Pos [X, Y]</div>
                 <div class="stat-value" id="disp-pos">[0.0, 0.0] mm</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">Estimated Pos (FK)</div>
+                <div class="stat-value" id="disp-est-pos">[0.0, 0.0] mm</div>
               </div>
               <div class="stat-card">
                 <div class="stat-label">Tracking Error</div>
                 <div class="stat-value" id="disp-error">0.00 mm</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">Data Provenance</div>
+                <div class="stat-value" id="disp-provenance">SIMULATED</div>
               </div>
               <div class="stat-card">
                 <div class="stat-label">Jacobian Cond. No.</div>
@@ -272,16 +297,37 @@
         </div>
       </aside>
     </div>
+
+    <!-- Bottom Engineering Diagnostic Graphs Bar -->
+    <section class="bottom-plots card">
+      <div class="plot-panel">
+        <h4>Position & Tracking Error (mm)</h4>
+        <canvas id="plot-pos-canvas"></canvas>
+      </div>
+      <div class="plot-panel">
+        <h4>Cable Tensions T1..T4 (N) [Limit: 300 N]</h4>
+        <canvas id="plot-tension-canvas"></canvas>
+      </div>
+      <div class="plot-panel">
+        <h4>Motor Speeds RPM1..RPM4 [Limit: 300 RPM]</h4>
+        <canvas id="plot-rpm-canvas"></canvas>
+      </div>
+      <div class="plot-panel">
+        <h4>Actuator Torques (Nm) [Limit: 0.4 Nm]</h4>
+        <canvas id="plot-torque-canvas"></canvas>
+      </div>
+    </section>
   </div>
 
   <!-- Modular Scripts -->
-  <script src="modules/scene.js?v=12"></script>
-  <script src="modules/robot_view.js?v=12"></script>
-  <script src="modules/engineering_view.js?v=12"></script>
-  <script src="modules/blueprint_view.js?v=12"></script>
-  <script src="modules/path_planner.js?v=12"></script>
-  <script src="modules/telemetry.js?v=12"></script>
-  <script src="modules/controls.js?v=12"></script>
-  <script src="app.js?v=12"></script>
+  <script src="modules/scene.js?v=15"></script>
+  <script src="modules/robot_view.js?v=15"></script>
+  <script src="modules/engineering_view.js?v=15"></script>
+  <script src="modules/blueprint_view.js?v=15"></script>
+  <script src="modules/path_planner.js?v=15"></script>
+  <script src="modules/telemetry.js?v=15"></script>
+  <script src="modules/plots.js?v=15"></script>
+  <script src="modules/controls.js?v=15"></script>
+  <script src="app.js?v=15"></script>
 </body>
 </html>

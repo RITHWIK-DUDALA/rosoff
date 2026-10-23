@@ -1,0 +1,129 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="planar_cdpr">
+
+  <!-- Canonical Geometry Parameters (500x400 mm frame, 100x80 mm platform) -->
+  <xacro:property name="frame_width" value="0.500" />
+  <xacro:property name="frame_height" value="0.400" />
+  <xacro:property name="frame_depth" value="0.120" />
+  <xacro:property name="extrusion_size" value="0.020" />
+
+  <xacro:property name="platform_width" value="0.100" />
+  <xacro:property name="platform_height" value="0.080" />
+  <xacro:property name="platform_thickness" value="0.006" />
+  <xacro:property name="platform_mass" value="0.50" />
+
+  <!-- Base Link: World / Center of Frame Origin -->
+  <link name="base_link" />
+
+  <link name="cdpr_frame">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <!-- Outer frame wireframe representation -->
+        <box size="${frame_width} ${frame_height} ${frame_depth}" />
+      </geometry>
+      <material name="silver_aluminum">
+        <color rgba="0.8 0.82 0.85 0.3" />
+      </material>
+    </visual>
+  </link>
+
+  <joint name="world_to_frame" type="fixed">
+    <parent link="base_link" />
+    <child link="cdpr_frame" />
+    <origin xyz="0 0 0" rpy="0 0 0" />
+  </joint>
+
+  <!-- Frame Corner Pulley Anchors -->
+  <!-- C1: Top-Left (-0.25, +0.20) -->
+  <link name="anchor_c1">
+    <visual>
+      <geometry><cylinder radius="0.010" length="0.020" /></geometry>
+      <material name="gold"><color rgba="0.9 0.7 0.1 1.0" /></material>
+    </visual>
+  </link>
+  <joint name="frame_to_c1" type="fixed">
+    <parent link="cdpr_frame" />
+    <child link="anchor_c1" />
+    <origin xyz="-0.250 0.200 0.0" rpy="0 0 0" />
+  </joint>
+
+  <!-- C2: Top-Right (+0.25, +0.20) -->
+  <link name="anchor_c2">
+    <visual>
+      <geometry><cylinder radius="0.010" length="0.020" /></geometry>
+      <material name="gold"><color rgba="0.9 0.7 0.1 1.0" /></material>
+    </visual>
+  </link>
+  <joint name="frame_to_c2" type="fixed">
+    <parent link="cdpr_frame" />
+    <child link="anchor_c2" />
+    <origin xyz="0.250 0.200 0.0" rpy="0 0 0" />
+  </joint>
+
+  <!-- C3: Bottom-Right (+0.25, -0.20) -->
+  <link name="anchor_c3">
+    <visual>
+      <geometry><cylinder radius="0.010" length="0.020" /></geometry>
+      <material name="gold"><color rgba="0.9 0.7 0.1 1.0" /></material>
+    </visual>
+  </link>
+  <joint name="frame_to_c3" type="fixed">
+    <parent link="cdpr_frame" />
+    <child link="anchor_c3" />
+    <origin xyz="0.250 -0.200 0.0" rpy="0 0 0" />
+  </joint>
+
+  <!-- C4: Bottom-Left (-0.25, -0.20) -->
+  <link name="anchor_c4">
+    <visual>
+      <geometry><cylinder radius="0.010" length="0.020" /></geometry>
+      <material name="gold"><color rgba="0.9 0.7 0.1 1.0" /></material>
+    </visual>
+  </link>
+  <joint name="frame_to_c4" type="fixed">
+    <parent link="cdpr_frame" />
+    <child link="anchor_c4" />
+    <origin xyz="-0.250 -0.200 0.0" rpy="0 0 0" />
+  </joint>
+
+  <!-- Virtual Planar Prismatic Joints for Platform X/Y Kinematic Simulation -->
+  <link name="platform_x_slider" />
+  <joint name="joint_platform_x" type="prismatic">
+    <parent link="cdpr_frame" />
+    <child link="platform_x_slider" />
+    <axis xyz="1 0 0" />
+    <limit lower="-0.180" upper="0.180" effort="50.0" velocity="0.100" />
+  </joint>
+
+  <!-- Moving End-Effector Platform -->
+  <link name="platform_link">
+    <inertial>
+      <mass value="${platform_mass}" />
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <inertia ixx="0.00027" ixy="0" ixz="0" iyy="0.00042" iyz="0" izz="0.00068" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size="${platform_width} ${platform_height} ${platform_thickness}" />
+      </geometry>
+      <material name="dark_grey">
+        <color rgba="0.15 0.16 0.18 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="${platform_width} ${platform_height} ${platform_thickness}" />
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="joint_platform_y" type="prismatic">
+    <parent link="platform_x_slider" />
+    <child link="platform_link" />
+    <axis xyz="0 1 0" />
+    <limit lower="-0.140" upper="0.140" effort="50.0" velocity="0.100" />
+  </joint>
+
+</robot>

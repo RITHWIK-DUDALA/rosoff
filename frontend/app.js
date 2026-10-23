@@ -53,16 +53,69 @@ document.addEventListener('DOMContentLoaded', async () => {
   } catch (err) {
     console.warn("Failed fetching config from backend, using default fallback:", err);
     config = {
-      frame: { width_m: 0.300, height_m: 0.200, depth_m: 0.080 },
-      platform: { width_m: 0.060, height_m: 0.040, thickness_m: 0.005 },
+      frame: { width_m: 0.500, height_m: 0.400, depth_m: 0.120 },
+      platform: { width_m: 0.100, height_m: 0.080, thickness_m: 0.006 },
       actuators: { drum_radius_m: 0.010 },
-      workspace: { x_min_m: -0.11, x_max_m: 0.11, y_min_m: -0.07, y_max_m: 0.07 }
+      workspace: { x_min_m: -0.18, x_max_m: 0.18, y_min_m: -0.14, y_max_m: 0.14 }
     };
+  }
+
+  // Operating Mode Selector binding
+  const selectMode = document.getElementById('select-mode');
+  const provenancePill = document.getElementById('provenance-pill');
+  if (selectMode) {
+    selectMode.addEventListener('change', async () => {
+      const chosenMode = selectMode.value;
+      try {
+        const res = await fetch(`${apiBase}/mode`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mode: chosenMode })
+        });
+        const data = await res.json();
+        if (data.status === 'rejected_unverified') {
+          showMessage(`⚠️ Hardware Motion Blocked: ${data.message}`, true);
+          selectMode.value = 'SIMULATION';
+          if (provenancePill) {
+            provenancePill.textContent = 'BLOCKED';
+            provenancePill.className = 'provenance-pill blocked';
+          }
+        } else {
+          showMessage(data.message, false);
+        }
+      } catch (err) {
+        showMessage(`Mode change error: ${err.message}`, true);
+        selectMode.value = 'SIMULATION';
+      }
+    });
   }
 
   // 1. Initialize 3D Viewport
   const sceneMgr = new SceneManager(threeViewport);
   const robotView = new RobotView(sceneMgr.scene, config);
+
+  // Sync coordinate input bounds with actual robot workspace configuration
+  if (config && config.workspace) {
+    const wsXMin = Math.round(config.workspace.x_min_m * 1000);
+    const wsXMax = Math.round(config.workspace.x_max_m * 1000);
+    const wsYMin = Math.round(config.workspace.y_min_m * 1000);
+    const wsYMax = Math.round(config.workspace.y_max_m * 1000);
+
+    const inputX = document.getElementById('input-x');
+    const inputY = document.getElementById('input-y');
+    if (inputX) {
+      inputX.min = wsXMin;
+      inputX.max = wsXMax;
+      const hintX = inputX.parentElement.querySelector('.input-hint');
+      if (hintX) hintX.textContent = `[${wsXMin}, +${wsXMax}]`;
+    }
+    if (inputY) {
+      inputY.min = wsYMin;
+      inputY.max = wsYMax;
+      const hintY = inputY.parentElement.querySelector('.input-hint');
+      if (hintY) hintY.textContent = `[${wsYMin}, +${wsYMax}]`;
+    }
+  }
 
   // 2. Initialize 2D Engineering View
   const engView = new EngineeringView(canvas2d, config, (targetX, targetY) => {
@@ -128,19 +181,34 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (btn) btn.addEventListener('click', () => pathPlanner.loadPreset(name));
   });
 
-  // Clear buttons
-  const btnClearWps = document.getElementById('btn-clear-wps');
-  if (btnClearWps) btnClearWps.addEventListener('click', () => {
+  // Unified clear functions
+  function handleClearTrail() {
+    pathPlanner.clearTrail();
+    if (robotView && robotView.clearTrail) {
+      robotView.clearTrail();
+    }
+    if (activeView === '2d' && engView) engView.render();
+    if (activeView === 'blueprint' && blueprintView) blueprintView.render();
+    showMessage('Blue drawing trail cleared');
+  }
+
+  function handleClearWps() {
     pathPlanner.clearWaypoints();
+    if (activeView === '2d' && engView) engView.render();
+    if (activeView === 'blueprint' && blueprintView) blueprintView.render();
     showMessage('Waypoints cleared');
+  }
+
+  // Clear trail buttons (sidebar, 2D viewport, blueprint viewport)
+  ['btn-clear-trail', 'btn-2d-clear-trail', 'btn-blueprint-clear-trail'].forEach(id => {
+    const btn = document.getElementById(id);
+    if (btn) btn.addEventListener('click', handleClearTrail);
   });
 
-  const btnClearTrail = document.getElementById('btn-clear-trail');
-  if (btnClearTrail) btnClearTrail.addEventListener('click', () => {
-    pathPlanner.clearTrail();
-    if (activeView === '2d') engView.render();
-    if (activeView === 'blueprint') blueprintView.render();
-    showMessage('Drawing trail cleared');
+  // Clear waypoints buttons (sidebar, 2D viewport, blueprint viewport)
+  ['btn-clear-wps', 'btn-2d-clear-wps', 'btn-blueprint-clear-wps'].forEach(id => {
+    const btn = document.getElementById(id);
+    if (btn) btn.addEventListener('click', handleClearWps);
   });
 
   // Execute Drawing Path
@@ -205,7 +273,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     commandMessageBox.className = `message-box ${isError ? 'error' : 'info'}`;
   }
 
-  // 6. Initialize Controls
+  // 6. Initialize Diagnostic Plots
+  const plotMgr = new PlotManager();
+
+  // 7. Initialize Controls
   const controlsMgr = new ControlsManager(apiBase, showMessage);
 
   // 7. Multi-view mode switcher (3D, 2D Sim, Blueprint)
@@ -296,18 +367,65 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     }
 
+    // Provenance & Mode updates
+    const prov = (telem.position_provenance || 'simulated').toUpperCase();
+    if (provenancePill) {
+      provenancePill.textContent = prov;
+      provenancePill.className = `provenance-pill ${telem.position_provenance || 'simulated'}`;
+    }
+    const dispProv = document.getElementById('disp-provenance');
+    if (dispProv) {
+      dispProv.textContent = prov;
+      dispProv.className = `stat-value ${telem.position_provenance || 'simulated'}`;
+    }
+
     // Kinematic summaries
-    document.getElementById('disp-pos').textContent = `[${telem.platform_pos[0].toFixed(1)}, ${telem.platform_pos[1].toFixed(1)}] mm`;
-    document.getElementById('disp-error').textContent = `${telem.tracking_error_mm.toFixed(2)} mm`;
-    document.getElementById('disp-cond').textContent = telem.condition_number.toFixed(2);
+    const dispPos = document.getElementById('disp-pos');
+    if (dispPos && telem.platform_pos) {
+      dispPos.textContent = `[${telem.platform_pos[0].toFixed(1)}, ${telem.platform_pos[1].toFixed(1)}] mm`;
+    }
+
+    const dispEstPos = document.getElementById('disp-est-pos');
+    if (dispEstPos) {
+      if (telem.estimated_pos && telem.estimated_valid) {
+        dispEstPos.textContent = `[${telem.estimated_pos[0].toFixed(1)}, ${telem.estimated_pos[1].toFixed(1)}] mm`;
+        dispEstPos.className = 'stat-value ok';
+      } else {
+        dispEstPos.textContent = 'DIVERGED / UNKNOWN';
+        dispEstPos.className = 'stat-value error';
+      }
+    }
+
+    const dispError = document.getElementById('disp-error');
+    if (dispError) {
+      if (telem.tracking_error_valid && telem.tracking_error_mm !== null && telem.tracking_error_mm !== undefined) {
+        dispError.textContent = `${telem.tracking_error_mm.toFixed(2)} mm`;
+        dispError.className = 'stat-value';
+      } else {
+        dispError.textContent = 'INVALID / STALE';
+        dispError.className = 'stat-value error';
+      }
+    }
+
+    const dispCond = document.getElementById('disp-cond');
+    if (dispCond) {
+      dispCond.textContent = telem.condition_number ? telem.condition_number.toFixed(2) : '1.00';
+    }
 
     const feasEl = document.getElementById('disp-tension-feas');
-    if (telem.tension_feasible) {
-      feasEl.textContent = 'FEASIBLE';
-      feasEl.className = 'stat-value ok';
-    } else {
-      feasEl.textContent = 'INFEASIBLE';
-      feasEl.className = 'stat-value error';
+    if (feasEl) {
+      if (telem.tension_feasible) {
+        feasEl.textContent = 'FEASIBLE';
+        feasEl.className = 'stat-value ok';
+      } else {
+        feasEl.textContent = 'INFEASIBLE';
+        feasEl.className = 'stat-value error';
+      }
+    }
+
+    // Push data to real-time diagnostic charts
+    if (plotMgr) {
+      plotMgr.pushData(telem);
     }
   }
 

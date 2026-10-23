@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>cdpr_bringup</name>
+  <version>1.0.0</version>
+  <description>Launch files and configuration for 2-DOF Planar CDPR</description>
+  <maintainer email="robotics@example.com">CDPR Team</maintainer>
+  <license>Apache-2.0</license>
+
+  <depend>rclpy</depend>
+  <depend>launch</depend>
+  <depend>launch_ros</depend>
+  <depend>cdpr_description</depend>
+  <depend>cdpr_interfaces</depend>
+  <depend>cdpr_kinematics</depend>
+  <depend>cdpr_motion</depend>
+  <depend>cdpr_state_estimator</depend>
+  <depend>cdpr_hardware</depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

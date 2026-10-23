@@ -1,0 +1,9 @@
+# Validate Cartesian Target Position Service
+
+geometry_msgs/Point target_position
+float64 target_speed_m_s
+---
+bool is_valid
+string rejection_reason
+float64[4] expected_cable_lengths_m
+float64[4] expected_cable_rpms

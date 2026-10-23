@@ -1,0 +1,21 @@
+# ROS 2 Parameters for Planar CDPR
+# Canonical Geometry: 500x400 mm frame, 100x80 mm platform
+
+cdpr_kinematics_node:
+  ros__parameters:
+    drum_radius_m: 0.010
+    max_speed_rpm: 300.0
+    workspace_x_limit_m: 0.180
+    workspace_y_limit_m: 0.140
+
+cdpr_motion_node:
+  ros__parameters:
+    max_speed_m_s: 0.100
+    max_accel_m_s2: 0.500
+    control_rate_hz: 50.0
+
+cdpr_hardware_node:
+  ros__parameters:
+    hardware_verified: false
+    transport_type: "serial_uart"
+    baud_rate: 115200

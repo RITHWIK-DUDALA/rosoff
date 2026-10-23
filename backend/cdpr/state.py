@@ -1,5 +1,6 @@
 """
-State definitions, telemetry payloads, and command data structures for CDPR simulator.
+State definitions, telemetry payloads, and command data structures for CDPR digital twin.
+Enforces Rule 0.6: Explicit provenance tagging (Simulated vs Commanded vs Measured vs Estimated).
 """
 from dataclasses import dataclass, field
 from typing import List, Dict, Optional, Any
@@ -32,6 +33,15 @@ class TelemetryData:
     condition_number: float
     active_faults: List[str]
     trajectory_progress_pct: float
+    # Provenance and state estimation extensions
+    operating_mode: str = "SIMULATION"     # "SIMULATION", "HARDWARE", "HARDWARE_DISABLED"
+    position_provenance: str = "simulated" # "simulated", "measured", "estimated", "unavailable"
+    estimated_x_mm: float = 0.0
+    estimated_y_mm: float = 0.0
+    estimated_valid: bool = True
+    tracking_error_valid: bool = True
+    is_stale: bool = False
+    homing_state: str = "HOMED"            # "HOMED", "UNREFERENCED", "HOMING_IN_PROGRESS"
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -40,13 +50,20 @@ class TelemetryData:
             "platform_vel": [round(self.platform_vx_mm_s, 2), round(self.platform_vy_mm_s, 2)],
             "platform_acc": [round(self.platform_ax_mm_s2, 2), round(self.platform_ay_mm_s2, 2)],
             "target_pos": [round(self.target_x_mm, 2), round(self.target_y_mm, 2)],
+            "estimated_pos": [round(self.estimated_x_mm, 2), round(self.estimated_y_mm, 2)],
+            "estimated_valid": self.estimated_valid,
             "cable_lengths_mm": [round(l, 2) for l in self.cable_lengths_mm],
             "cable_rates_mm_s": [round(r, 2) for r in self.cable_rates_mm_s],
             "cable_tensions_N": [round(t, 2) for t in self.cable_tensions_N],
             "motor_speeds_rpm": [round(rpm, 1) for rpm in self.motor_speeds_rpm],
             "motor_torques_Nm": [round(tau, 3) for tau in self.motor_torques_Nm],
-            "tracking_error_mm": round(self.tracking_error_mm, 2),
+            "tracking_error_mm": round(self.tracking_error_mm, 2) if self.tracking_error_valid else None,
+            "tracking_error_valid": self.tracking_error_valid,
             "controller_mode": self.controller_mode,
+            "operating_mode": self.operating_mode,
+            "position_provenance": self.position_provenance,
+            "is_stale": self.is_stale,
+            "homing_state": self.homing_state,
             "workspace_safe": self.workspace_safe,
             "collision_safe": self.collision_safe,
             "tension_feasible": self.tension_feasible,

@@ -97,9 +97,9 @@ class RobotView {
       roughness: 0.22
     });
     const nylonSpoolMat = new THREE.MeshStandardMaterial({
-      color: 0xf8fafc, // Pure white 3D printed / injection-molded winch spool drum
+      color: 0xfacc15, // Bright yellow winch spool drum
       roughness: 0.35,
-      metalness: 0.05
+      metalness: 0.15
     });
     const brassShaftMat = new THREE.MeshStandardMaterial({
       color: 0xd4af37, // Real machined brass output D-shaft
@@ -260,6 +260,37 @@ class RobotView {
 
       motorGroup.add(drumGroup);
       this.drumMeshes.push(drumGroup);
+
+      // (f) High-visibility Motor Identification Badge (M1-M4)
+      const badgeCanvas = document.createElement('canvas');
+      badgeCanvas.width = 280;
+      badgeCanvas.height = 70;
+      const bCtx = badgeCanvas.getContext('2d');
+
+      const badgeBg = idx === 0 ? '#ef4444' : idx === 1 ? '#2563eb' : idx === 2 ? '#16a34a' : '#eab308';
+      bCtx.fillStyle = badgeBg;
+      if (bCtx.roundRect) {
+        bCtx.roundRect(4, 4, 272, 62, 12);
+      } else {
+        bCtx.rect(4, 4, 272, 62);
+      }
+      bCtx.fill();
+      bCtx.strokeStyle = '#ffffff';
+      bCtx.lineWidth = 2;
+      bCtx.stroke();
+
+      bCtx.fillStyle = '#ffffff';
+      bCtx.font = 'bold 26px "Space Grotesk", sans-serif';
+      bCtx.textAlign = 'center';
+      bCtx.textBaseline = 'middle';
+      bCtx.fillText(labelTitle, 140, 35);
+
+      const badgeTexture = new THREE.CanvasTexture(badgeCanvas);
+      const spriteMat = new THREE.SpriteMaterial({ map: badgeTexture, transparent: true });
+      const sprite = new THREE.Sprite(spriteMat);
+      sprite.scale.set(0.08, 0.020, 1);
+      sprite.position.set(dirX * 0.038, dirY * 0.038, 0.024);
+      motorGroup.add(sprite);
 
       this.frameGroup.add(motorGroup);
       this.motorAssemblies.push(motorGroup);

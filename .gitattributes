@@ -1,0 +1,39 @@
+# Auto-detect text files and normalize line endings
+* text=auto
+
+# Enforce LF line endings for Linux/POSIX shell scripts and Dockerfiles
+*.sh text eol=lf
+Dockerfile text eol=lf
+*.bash text eol=lf
+
+# Platform-independent source code: normalize to LF
+*.py text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.js text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+*.c text eol=lf
+*.h text eol=lf
+*.xacro text eol=lf
+*.urdf text eol=lf
+*.msg text eol=lf
+*.srv text eol=lf
+*.action text eol=lf
+
+# Windows PowerShell and batch scripts
+*.ps1 text eol=crlf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.tar.gz binary
+*.zip binary

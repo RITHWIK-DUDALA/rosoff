@@ -1,7 +1,11 @@
-# Robot Configuration Specification - Planar Cable-Driven Parallel Robot (CDPR)
-# All physical calculations inside the simulation engine use SI units:
+# Canonical Robot Configuration Specification - Planar Cable-Driven Parallel Robot (CDPR)
+# Schema Version: 1.0.0
+# All physical calculations inside the simulation and control engines use SI units:
 # Length: meters (m), Time: seconds (s), Mass: kilograms (kg), Force: newtons (N), Angle: radians (rad)
-# Display values can be converted to mm, RPM, etc. at the boundary layers.
+# Display conversions (mm, RPM) are performed strictly at interface boundaries.
+
+schema_version: "1.0.0"
+robot_id: "cdpr_planar_2dof_4cable"
 
 units:
   internal_length: "m"
@@ -18,40 +22,40 @@ coordinate_system:
   x_axis: "horizontal_positive_right"
   y_axis: "vertical_positive_upward"
   z_axis: "normal_to_xy_plane"
-  plane: "horizontal" # Gravity acts along -Z, normal reaction carried by guide/bed
+  plane: "horizontal" # Gravity acts along -Z, normal reaction supported by anti-rotation guide rods
 
 frame:
-  width_m: 0.300      # 300 mm
-  height_m: 0.200     # 200 mm
-  depth_m: 0.080      # 80 mm
+  width_m: 0.500      # 500 mm
+  height_m: 0.400     # 400 mm
+  depth_m: 0.120      # 120 mm
   anchors:
-    # A_i coordinates [x, y, z] in meters from frame center
-    C1: [-0.150,  0.100, 0.0]  # Top-Left (Motor 1)
-    C2: [ 0.150,  0.100, 0.0]  # Top-Right (Motor 2)
-    C3: [ 0.150, -0.100, 0.0]  # Bottom-Right (Motor 3)
-    C4: [-0.150, -0.100, 0.0]  # Bottom-Left (Motor 4)
+    # A_i coordinates [x, y, z] in meters relative to frame center
+    C1: [-0.250,  0.200, 0.0]  # Top-Left (Motor 1)
+    C2: [ 0.250,  0.200, 0.0]  # Top-Right (Motor 2)
+    C3: [ 0.250, -0.200, 0.0]  # Bottom-Right (Motor 3)
+    C4: [-0.250, -0.200, 0.0]  # Bottom-Left (Motor 4)
 
 platform:
-  width_m: 0.060      # 60 mm
-  height_m: 0.040     # 40 mm
-  thickness_m: 0.005  # 5 mm
-  mass_kg: 0.15       # 0.15 kg
-  inertia_z_kg_m2: 0.000065 # (1/12) * 0.15 * (0.06^2 + 0.04^2)
+  width_m: 0.100      # 100 mm
+  height_m: 0.080     # 80 mm
+  thickness_m: 0.006  # 6 mm
+  mass_kg: 0.50       # 0.5 kg (provisional)
+  inertia_z_kg_m2: 0.0006833 # (1/12) * 0.50 * (0.100^2 + 0.080^2)
   attachments:
-    # b_i coordinates [x, y, z] relative to platform center in meters (corner eyelet bolts)
-    C1: [-0.030,  0.020, 0.0]
-    C2: [ 0.030,  0.020, 0.0]
-    C3: [ 0.030, -0.020, 0.0]
-    C4: [-0.030, -0.020, 0.0]
+    # B_i coordinates [x, y, z] in meters relative to platform center (corner eyelets)
+    C1: [-0.050,  0.040, 0.0]
+    C2: [ 0.050,  0.040, 0.0]
+    C3: [ 0.050, -0.040, 0.0]
+    C4: [-0.050, -0.040, 0.0]
 
 guide:
   type: "dual_rod_anti_rotation"
-  diameter_m: 0.010   # 10 mm rods (provisional)
+  diameter_m: 0.010   # 10 mm precision linear shafts (LM10UU / dry bushings)
   constrained_dof:
     z_translation: true
     x_rotation: true
     y_rotation: true
-    z_rotation: true # Anti-rotation guide mechanically constrains rotation
+    z_rotation: true  # Anti-rotation guide mechanically constrains rotation
   free_dof:
     x_translation: true
     y_translation: true
@@ -59,45 +63,51 @@ guide:
 
 cables:
   count: 4
-  model: "rigid_massless_unilateral" # Rigid, massless, unilateral tension-only
+  model: "rigid_massless_unilateral" # Unilateral tension-only constraint (T >= T_min > 0)
   min_tension_N: 2.0    # Minimum operating tension to prevent slack (provisional)
-  max_tension_N: 300.0  # Max allowable cable tension (provisional rating, unverified)
-  elastic_modulus_Pa: 1.0e11 # For reference / elastic extension estimation if needed
-  diameter_m: 0.001     # 1 mm Dyneema/steel cord
+  max_tension_N: 300.0  # Max allowable structural cable tension (provisional rating)
+  elastic_modulus_Pa: 1.0e+11 # UHMWPE / Dyneema SK75 braided cord
+  diameter_m: 0.001     # 1 mm nominal diameter
 
 actuators:
-  model: "28BYJ-48"
-  part_number: "15031801"
-  rated_voltage: "5V DC"
-  motor_type: "unipolar_geared_stepper"
-  gear_ratio: 64.0          # Internal gear reduction ratio (~64:1)
-  stride_angle_deg: 5.625    # Step angle 5.625° / 64
-  steps_per_rev: 4096       # 4096 half-steps per output revolution
-  phases: 4
-  wire_color_sequence: ["blue", "pink", "yellow", "orange", "red"]
   count: 4
-  drum_radius_m: 0.010  # 10 mm radius
+  drum_radius_m: 0.010  # 10 mm nominal spool radius (provisional)
   drum_inertia_kg_m2: 1.0e-5 # Estimated drum rotational inertia (provisional)
-  max_speed_rpm: 300.0  # Motor speed limit (300 RPM -> ~314 mm/s linear cable speed)
-  max_torque_Nm: 0.4    # Motor torque limit (0.4 Nm -> 40 N cable tension at 10mm radius)
+  max_speed_rpm: 300.0  # Motor speed limit (300 RPM -> ~314 mm/s linear cable speed, unverified)
+  max_torque_Nm: 0.40   # Motor continuous torque limit (0.4 Nm, unverified)
   efficiency: 0.90      # Mechanical transmission efficiency (provisional)
   control_bandwidth_hz: 50.0
+  verification_status:
+    model_confirmed: false
+    torque_verified: false
+    speed_verified: false
+    encoder_verified: false
 
 motion_limits:
-  nominal_max_speed_m_s: 0.100  # 100 mm/s platform velocity
+  nominal_max_speed_m_s: 0.100  # 100 mm/s target platform velocity (provisional)
   max_accel_m_s2: 0.500        # 500 mm/s^2 platform acceleration
-  max_jerk_m_s3: 2.000         # 2000 mm/s^3 jerk limit for S-curve
+  max_jerk_m_s3: 2.000         # 2000 mm/s^3 jerk limit for smooth profiling
 
 workspace:
-  # Theoretical bounding box: frame center +/- (frame - platform)/2 - clearance
-  safety_margin_m: 0.010 # 10 mm clearance from boundary
-  x_min_m: -0.110        # [-110 mm, +110 mm]
-  x_max_m:  0.110
-  y_min_m: -0.070        # [-70 mm, +70 mm]
-  y_max_m:  0.070
+  # Theoretical bounds: frame_half - platform_half - safety_margin
+  # X: 0.250 - 0.050 - 0.020 = 0.180 m ([-180 mm, +180 mm])
+  # Y: 0.200 - 0.040 - 0.020 = 0.140 m ([-140 mm, +140 mm])
+  safety_margin_m: 0.020
+  x_min_m: -0.180
+  x_max_m:  0.180
+  y_min_m: -0.140
+  y_max_m:  0.140
+
+safety:
+  emergency_stop_software: true
+  emergency_stop_hardware_verified: false
+  safe_torque_off_available: false
+  require_homing_before_motion: true
+  watchdog_timeout_ms: 250
+  stale_telemetry_timeout_s: 0.5
 
 simulation:
-  timestep_s: 0.010      # 100 Hz simulation update rate
+  timestep_s: 0.010      # 100 Hz simulation physics update rate
   telemetry_rate_hz: 30  # WebSocket publishing rate
   solver_tolerances:
     fk_tol: 1.0e-7

@@ -1,12 +1,20 @@
 """
 Configuration loader and validator for the Cable-Driven Parallel Robot (CDPR).
-Strictly validates robot_config.yaml ensuring physical feasibility and completeness.
+Strictly validates robot_config.yaml against configuration.schema.json, ensuring
+physical feasibility, completeness, and SI unit consistency.
 """
 from dataclasses import dataclass, field
+import json
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple, Any
 import yaml
 import numpy as np
+
+try:
+    import jsonschema
+    HAS_JSONSCHEMA = True
+except ImportError:
+    HAS_JSONSCHEMA = False
 
 
 class ConfigValidationError(ValueError):
@@ -71,6 +79,7 @@ class ActuatorConfig:
     max_torque_Nm: float
     efficiency: float
     control_bandwidth_hz: float
+    verification_status: Dict[str, bool] = field(default_factory=dict)
 
     @property
     def max_speed_rad_s(self) -> float:
@@ -120,6 +129,49 @@ class SimulationConfig:
 
 
 @dataclass
+class SafetyConfig:
+    emergency_stop_software: bool = True
+    emergency_stop_hardware_verified: bool = False
+    safe_torque_off_available: bool = False
+    require_homing_before_motion: bool = True
+    watchdog_timeout_ms: float = 250.0
+    stale_telemetry_timeout_s: float = 0.5
+
+
+@dataclass
+class HardwareProfile:
+    status: str
+    controller_type: str
+    controller_model: str
+    transport_type: str
+    transport_verified: bool
+    drives_count: int
+    drives_model: str
+    drives_protocol: str
+    drives_verified: bool
+    motors_count: int
+    motors_model: str
+    encoder_type: str
+    feedback_available: str
+    hardware_motion_enabled: bool
+    homing_state: str
+    emergency_stop_verified: bool
+    raw_dict: dict = field(default_factory=dict)
+
+    @property
+    def is_hardware_ready(self) -> bool:
+        """Hardware motion is strictly forbidden unless all critical parameters are verified."""
+        return (
+            self.status == "verified"
+            and self.transport_verified
+            and self.drives_verified
+            and self.emergency_stop_verified
+            and self.homing_state == "HOMED"
+            and self.hardware_motion_enabled
+        )
+
+
+@dataclass
 class RobotConfig:
     raw_dict: dict
     frame: FrameConfig
@@ -129,17 +181,102 @@ class RobotConfig:
     motion_limits: MotionLimits
     workspace: WorkspaceConfig
     simulation: SimulationConfig
+    safety: SafetyConfig
     operating_plane: str = "horizontal"
+    schema_version: str = "1.0.0"
+    robot_id: str = "cdpr_planar_2dof_4cable"
+    hardware_profile: Optional[HardwareProfile] = None
 
 
-def load_robot_config(config_path: str | Path) -> RobotConfig:
+def find_config_file(filename: str = "robot_config.yaml") -> Path:
+    """Resolves config file searching config/ first, then workspace root."""
+    candidate_paths = [
+        Path("config") / filename,
+        Path(filename),
+        Path(__file__).resolve().parent.parent.parent / "config" / filename,
+        Path(__file__).resolve().parent.parent.parent / filename,
+    ]
+    for p in candidate_paths:
+        if p.is_file():
+            return p
+    return Path(filename)
+
+
+def load_hardware_profile(profile_path: Optional[str | Path] = None) -> HardwareProfile:
+    """Loads and parses the hardware capability profile, enforcing unverified guards."""
+    if profile_path is None:
+        p = find_config_file("hardware_profile.yaml")
+        if not p.is_file():
+            p = find_config_file("hardware_profile.example.yaml")
+    else:
+        p = Path(profile_path)
+
+    if not p.is_file():
+        # Fallback default unverified profile
+        return HardwareProfile(
+            status="unverified",
+            controller_type="esp32",
+            controller_model="unknown",
+            transport_type="unknown",
+            transport_verified=False,
+            drives_count=4,
+            drives_model="unknown",
+            drives_protocol="unknown",
+            drives_verified=False,
+            motors_count=4,
+            motors_model="unknown",
+            encoder_type="unknown",
+            feedback_available="unknown",
+            hardware_motion_enabled=False,
+            homing_state="UNREFERENCED",
+            emergency_stop_verified=False,
+            raw_dict={},
+        )
+
+    with open(p, "r", encoding="utf-8") as f:
+        data = yaml.safe_load(f) or {}
+
+    hw = data.get("hardware", {})
+    ctrl = hw.get("controller", {})
+    trans = hw.get("transport", {})
+    drv = hw.get("drives", {})
+    mot = hw.get("motors", {})
+    sft = hw.get("safety", {})
+
+    return HardwareProfile(
+        status=str(hw.get("status", "unverified")),
+        controller_type=str(ctrl.get("type", "esp32")),
+        controller_model=str(ctrl.get("model", "unknown")),
+        transport_type=str(trans.get("type", "unknown")),
+        transport_verified=bool(trans.get("verified", False)),
+        drives_count=int(drv.get("count", 4)),
+        drives_model=str(drv.get("model", "unknown")),
+        drives_protocol=str(drv.get("protocol", "unknown")),
+        drives_verified=bool(drv.get("verified", False)),
+        motors_count=int(mot.get("count", 4)),
+        motors_model=str(mot.get("model", "unknown")),
+        encoder_type=str(mot.get("encoder_type", "unknown")),
+        feedback_available=str(mot.get("feedback_available", "unknown")),
+        hardware_motion_enabled=bool(hw.get("hardware_motion_enabled", False)),
+        homing_state=str(hw.get("homing_state", "UNREFERENCED")),
+        emergency_stop_verified=bool(sft.get("emergency_stop_hardware_verified", False)),
+        raw_dict=data,
+    )
+
+
+def load_robot_config(config_path: str | Path = "robot_config.yaml") -> RobotConfig:
     """
     Loads and validates the YAML robot configuration file.
     Rejects missing, malformed, or physically invalid values.
+    Validates against JSON Schema if available.
     """
     path = Path(config_path)
     if not path.is_file():
-        raise ConfigValidationError(f"Configuration file not found: {path.resolve()}")
+        resolved = find_config_file(path.name)
+        if resolved.is_file():
+            path = resolved
+        else:
+            raise ConfigValidationError(f"Configuration file not found: {path.resolve()}")
 
     with open(path, "r", encoding="utf-8") as f:
         try:
@@ -150,12 +287,22 @@ def load_robot_config(config_path: str | Path) -> RobotConfig:
     if not isinstance(data, dict):
         raise ConfigValidationError("Configuration root must be a YAML mapping.")
 
+    # Validate against JSON schema if schema file exists and jsonschema is installed
+    schema_path = find_config_file("configuration.schema.json")
+    if HAS_JSONSCHEMA and schema_path.is_file():
+        try:
+            with open(schema_path, "r", encoding="utf-8") as sf:
+                schema_dict = json.load(sf)
+            jsonschema.validate(instance=data, schema=schema_dict)
+        except jsonschema.ValidationError as ve:
+            raise ConfigValidationError(f"Schema validation error in {path}: {ve.message}") from ve
+
     # Validate coordinate system
     coord = data.get("coordinate_system", {})
     if coord.get("origin") != "center_of_frame":
         raise ConfigValidationError("coordinate_system.origin must be 'center_of_frame'")
-    if coord.get("plane") != "horizontal":
-        raise ConfigValidationError("coordinate_system.plane must be 'horizontal'")
+    if coord.get("plane") not in ("horizontal", "vertical"):
+        raise ConfigValidationError("coordinate_system.plane must be 'horizontal' or 'vertical'")
 
     # Validate frame
     frame_dict = data.get("frame")
@@ -286,6 +433,7 @@ def load_robot_config(config_path: str | Path) -> RobotConfig:
         max_torque_Nm=tau_max,
         efficiency=eff,
         control_bandwidth_hz=float(act_dict.get("control_bandwidth_hz", 50.0)),
+        verification_status=act_dict.get("verification_status", {}),
     )
 
     # Motion limits
@@ -327,6 +475,17 @@ def load_robot_config(config_path: str | Path) -> RobotConfig:
         y_max_m=ymax,
     )
 
+    # Safety settings
+    safety_dict = data.get("safety", {})
+    safety_config = SafetyConfig(
+        emergency_stop_software=bool(safety_dict.get("emergency_stop_software", True)),
+        emergency_stop_hardware_verified=bool(safety_dict.get("emergency_stop_hardware_verified", False)),
+        safe_torque_off_available=bool(safety_dict.get("safe_torque_off_available", False)),
+        require_homing_before_motion=bool(safety_dict.get("require_homing_before_motion", True)),
+        watchdog_timeout_ms=float(safety_dict.get("watchdog_timeout_ms", 250.0)),
+        stale_telemetry_timeout_s=float(safety_dict.get("stale_telemetry_timeout_s", 0.5)),
+    )
+
     # Simulation settings
     sim_dict = data.get("simulation", {})
     dt = float(sim_dict.get("timestep_s", 0.0))
@@ -349,6 +508,8 @@ def load_robot_config(config_path: str | Path) -> RobotConfig:
         solver_tolerances=solver_tols,
     )
 
+    hw_profile = load_hardware_profile()
+
     return RobotConfig(
         raw_dict=data,
         frame=frame_config,
@@ -358,5 +519,9 @@ def load_robot_config(config_path: str | Path) -> RobotConfig:
         motion_limits=motion_limits,
         workspace=workspace_config,
         simulation=simulation_config,
-        operating_plane="horizontal",
+        safety=safety_config,
+        operating_plane=str(coord.get("plane", "horizontal")),
+        schema_version=str(data.get("schema_version", "1.0.0")),
+        robot_id=str(data.get("robot_id", "cdpr_planar_2dof_4cable")),
+        hardware_profile=hw_profile,
     )

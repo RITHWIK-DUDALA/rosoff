@@ -84,7 +84,7 @@ class PlotManager {
     const range = (yMax - yMin) || 1;
 
     // Draw baseline / grid
-    ctx.strokeStyle = '#21262d';
+    ctx.strokeStyle = '#e2e8f0';
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(35, h - 15);
@@ -92,7 +92,7 @@ class PlotManager {
     ctx.stroke();
 
     // Axis labels
-    ctx.fillStyle = '#8b949e';
+    ctx.fillStyle = '#64748b';
     ctx.font = '9px "JetBrains Mono", monospace';
     ctx.fillText(`${yMax.toFixed(1)} ${unit}`, 2, 12);
     ctx.fillText(`${yMin.toFixed(1)}`, 2, h - 16);

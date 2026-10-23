@@ -1,112 +1,221 @@
-# Planar Cable-Driven Parallel Robot (CDPR) Simulator
+# Planar Cable-Driven Parallel Robot (CDPR) Platform
+### 2-DOF, Four-Cable Digital Twin + Python Backend + ROS 2 + micro-ROS + ESP32 + Servo Drives
 
-Engineering-grade 2-DOF planar Cable-Driven Parallel Robot simulator featuring real analytical kinematics, forward position reconstruction, quadratic static tension allocation, actuator saturation constraints, fixed-timestep physics loop, live Three.js 3D viewport, 2D dimensioned orthographic projection, and real-time telemetry streaming.
-
----
-
-## 1. Specifications Overview
-
-| Parameter | Value |
-|---|---|
-| **Robot Type** | 2-DOF Planar Cable-Driven Parallel Robot |
-| **Motion Plane** | Horizontal XY Plane (Gravity along -Z supported by bed & guide rods) |
-| **Frame Geometry** | $500 \times 400 \times 120\text{ mm}$ inner bounding envelope |
-| **Platform Footprint** | $100 \times 80 \times 6\text{ mm}$, Mass: $0.5\text{ kg}$ |
-| **Safe Workspace** | $X \in [-180, +180]\text{ mm}$, $Y \in [-140, +140]\text{ mm}$ (with 20 mm boundary clearance) |
-| **Actuation** | 4 spools, drum radius $r = 10\text{ mm}$ |
-| **Actuator Limits** | Speed $\le 300\text{ RPM}$, Torque $\le 0.40\text{ Nm}$ (provisional bounds) |
-| **Nominal Speed** | $100\text{ mm/s}$ maximum platform translational speed |
-| **Simulation Timestep** | Fixed $\Delta t = 10\text{ ms}$ (100 Hz deterministic physics engine) |
-| **Telemetry Rate** | 30 Hz WebSocket broadcast to browser clients |
+Engineering-grade, mathematically verified digital twin and hardware integration platform for a two-degree-of-freedom planar Cable-Driven Parallel Robot (CDPR). Features real analytical kinematics, Levenberg-Marquardt forward kinematics pose estimation, quadratic static tension allocation, actuator saturation constraints, strict hardware safety interlocks, interactive Three.js 3D viewport, 2D dimensioned engineering projection, modular ROS 2 workspace, and an ESP32 micro-ROS embedded firmware client.
 
 ---
 
-## 2. Directory Structure
+## 1. System Architecture
+
+The platform bridges operator commands in the browser down to micro-ROS embedded firmware and servo drives:
+
+```text
++-------------------------------------------------------------+
+| Browser Engineering Interface (Three.js + Orthographic 2D) |
+| - Interactive 3D Digital Twin & Dimensioned 2D Projection    |
+| - Target X/Y, Jogging, Controlled Stop, Mode Selection       |
++-------------------------------------------------------------+
+                              |
+                     WebSocket / REST API
+                              v
++-------------------------------------------------------------+
+| Python Application Backend (FastAPI + SciPy + NumPy)       |
+| - Canonical Configuration & JSON Schema Validation          |
+| - Analytical IK & Jacobian (J_L)                           |
+| - Levenberg-Marquardt Forward Kinematics State Estimator    |
+| - Bounded Quadratic Programming Tension Solver (lsq_linear) |
+| - Deterministic 100 Hz Physics Loop & Provenance Tagging    |
+| - Hardware Abstraction Layer (HAL) & Safety Interlocks      |
++-------------------------------------------------------------+
+                              |
+                       ROS 2 Humble DDS
+                              v
++-------------------------------------------------------------+
+| ROS 2 Workspace (ros2_ws/)                                  |
+| - cdpr_interfaces (Messages, Services, Actions)             |
+| - cdpr_description (Parametric URDF/Xacro)                 |
+| - cdpr_kinematics, cdpr_motion, cdpr_state_estimator        |
+| - cdpr_hardware (Simulation Driver + Hardware Driver)       |
++-------------------------------------------------------------+
+                              |
+                    micro-ROS Agent (Serial/UDP)
+                              v
++-------------------------------------------------------------+
+| Embedded Microcontroller (firmware/esp32_micro_ros/)       |
+| - ESP32 SoC running FreeRTOS & micro-ROS Client             |
+| - Strict Finite State Machine & 250 ms Hardware Watchdog    |
+| - Isolated Servo Driver Interface Layer                     |
++-------------------------------------------------------------+
+                              |
+                              v
++-------------------------------------------------------------+
+| Actuation & Mechanics                                       |
+| - 4x Spool Winches (r = 10 mm drum radius)                  |
+| - 4x Servo Motors & Drives with Safe Torque Off (STO)       |
+| - Moving Platform (100x80x6 mm, mass = 0.5 kg)              |
++-------------------------------------------------------------+
+```
+
+---
+
+## 2. Supported Operating Modes
+
+1. **`SIMULATION` (Default):**
+   - Pure offline mathematical simulation.
+   - Requires zero external hardware and zero ROS 2 dependencies.
+   - All generated telemetry is explicitly tagged with `provenance: "simulated"`.
+   - Guaranteed safe for development, algorithm verification, and operator training.
+
+2. **`HARDWARE_DISABLED`:**
+   - Connects to hardware or ROS 2 interfaces for diagnostics and sensor monitoring only.
+   - Actuator torque commands are disabled in software.
+   - Allows safe inspection of encoder registers and drive health.
+
+3. **`HARDWARE` (Guarded):**
+   - Active physical robot control mode.
+   - **Strict Safety Gate:** Refuses activation if any hardware parameters remain `unverified`, if homing is unreferenced, or if safety interlocks are tripped.
+   - Motors are NEVER energized automatically upon connection or application boot.
+
+---
+
+## 3. Canonical Robot Geometry & Specifications
+
+All geometry is defined in a single source of truth (`config/robot_config.yaml`):
+
+| Parameter | Value | Notes |
+|---|---|---|
+| **Controlled DOF** | 2 Translational ($X, Y$) | Anti-rotation guide rods constrain $\theta_z$ |
+| **Number of Cables** | 4 | Antagonistic planar configuration |
+| **Frame Dimensions** | $500 \times 400 \times 120\text{ mm}$ | Outer aluminum extrusion boundary |
+| **Platform Dimensions** | $100 \times 80 \times 6\text{ mm}$ | Aluminum end-effector plate |
+| **Platform Mass** | $0.50\text{ kg}$ | Provisional design value |
+| **Safe Workspace** | $X \in [-180, +180]\text{ mm}$, $Y \in [-140, +140]\text{ mm}$ | 20 mm clearance from frame edges |
+| **Spool Drum Radius** | $r = 10.0\text{ mm}$ ($0.010\text{ m}$) | Nominal spool cylinder radius |
+| **Nominal Speed** | $100\text{ mm/s}$ ($0.100\text{ m/s}$) | Maximum platform translational speed |
+| **Actuator Limits** | $\le 300\text{ RPM}$, $\le 0.40\text{ Nm}$ | Provisional drive boundaries |
+| **Frame Anchors** | $A_1: (-250, +200)$, $A_2: (+250, +200)$, $A_3: (+250, -200)$, $A_4: (-250, -200)\text{ mm}$ | Frame corner pulleys |
+| **Platform Attachments** | $B_1: (-50, +40)$, $B_2: (+50, +40)$, $B_3: (+50, -40)$, $B_4: (-50, -40)\text{ mm}$ | Local platform anchor points |
+
+---
+
+## 4. Repository Layout
 
 ```text
 rosoff/
-├── robot_config.yaml         # Single source of truth configuration
-├── pytest.ini                # Pytest configuration
+├── config/
+│   ├── robot_config.yaml         # Single source of truth configuration
+│   ├── configuration.schema.json # JSON Schema for strict validation
+│   └── hardware_profile.example.yaml # Capability verification template
 ├── backend/
-│   ├── main.py               # FastAPI server and background simulation loop
-│   ├── requirements.txt      # Python dependencies
-│   ├── api/
-│   │   ├── routes.py         # REST endpoints (/health, /command/*, /workspace, etc.)
-│   │   └── websocket.py      # /ws/telemetry live WebSocket streamer
-│   └── cdpr/
-│       ├── config.py         # Strict YAML validator and SI conversion
-│       ├── geometry.py       # Anchor and platform attachment vector mathematics
-│       ├── kinematics.py     # Inverse kinematics, Jacobian J_L, and Levenberg-Marquardt FK
-│       ├── tension_solver.py # Bounded quadratic programming static tension allocation
-│       ├── actuator.py       # Drum spooling, RPM, and torque saturation models
-│       ├── dynamics.py       # Reduced-coordinate planar platform dynamic simulation
-│       ├── collision.py      # Footprint, frame clearance, and cable bounds checking
-│       ├── trajectory.py     # Trapezoidal point-to-point, circle, rectangle, waypoints
-│       ├── controller.py     # Motion supervisor state machine and jogging
-│       ├── simulation.py     # Fixed-timestep physics simulation engine
-│       └── state.py          # Telemetry and state data structures
+│   ├── main.py                   # FastAPI application entry point
+│   ├── requirements.txt          # Python dependencies
+│   ├── api/                      # REST endpoints & WebSocket streamer
+│   └── cdpr/                     # Core robotics mathematics, HAL, and simulation
 ├── frontend/
-│   ├── index.html            # Dual-viewport engineering interface
-│   ├── style.css             # Dark high-contrast engineering stylesheet
-│   ├── app.js                # Frontend bootstrap and state synchronization
-│   └── modules/
-│       ├── scene.js          # Three.js 3D scene, lighting, and camera management
-│       ├── robot_view.js     # 3D frame, winches, cables, platform, guide rods
-│       ├── engineering_view.js # 2D dimensioned millimeter orthographic projection
-│       ├── telemetry.js      # WebSocket client with auto-reconnect
-│       ├── controls.js       # Move, jog, preset, pause, stop, e-stop handlers
-│       └── plots.js          # Real-time diagnostic chart renderers
-├── tests/
-│   ├── test_geometry.py      # Geometry and coordinate symmetry tests
-│   ├── test_kinematics.py    # Analytical vs finite-difference Jacobian, IK, and FK recovery
-│   ├── test_tension.py       # Equilibrium residuals, non-negativity, and extreme force rejection
-│   ├── test_actuator.py      # Drum spooling, RPM calculations, and saturation flags
-│   ├── test_trajectory.py    # Path feasibility, speed limits, and boundary violation rejection
-│   ├── test_simulation.py    # Deterministic simulation stepping and E-stop integration
-│   └── test_api.py           # REST endpoints and validation responses
+│   ├── index.html                # Dual-viewport engineering interface
+│   ├── style.css                 # Industrial high-contrast stylesheet
+│   ├── app.js                    # Bootstrap & state coordinator
+│   └── modules/                  # Three.js 3D viewport, 2D projection, telemetry
+├── ros2_ws/
+│   └── src/
+│       ├── cdpr_interfaces/      # Custom ROS 2 msgs, srvs, actions
+│       ├── cdpr_description/     # Parametric URDF/Xacro representation
+│       ├── cdpr_kinematics/      # Kinematics and target validation node
+│       ├── cdpr_motion/          # Trapezoidal motion planning node
+│       ├── cdpr_state_estimator/ # Forward kinematics state estimation node
+│       ├── cdpr_hardware/        # Simulation and hardware driver nodes
+│       └── cdpr_bringup/         # System launch files and parameter files
+├── firmware/
+│   └── esp32_micro_ros/          # ESP32 FreeRTOS micro-ROS client project
+│       ├── CMakeLists.txt
+│       ├── sdkconfig.defaults
+│       └── main/                 # FSM, servo driver interface, watchdog
 ├── scripts/
-│   └── generate_plots.py     # Offline verification plot generation using solver outputs
-├── docs/
-│   ├── MODEL.md              # Physical model, equations, and sign conventions
-│   ├── ASSUMPTIONS.md        # Provisional parameters and unverified hardware assumptions
-│   ├── VALIDATION.md         # Numerical validation test log and verification results
-│   ├── HARDWARE.md           # Component selection guidelines for physical testbed
-│   ├── workspace_feasibility.png
-│   ├── cable_lengths_vs_position.png
-│   ├── motor_rpm_trajectory.png
-│   ├── cable_tensions_time.png
-│   └── tracking_error_trajectory.png
-└── ros2/
-    ├── README.md             # ROS 2 integration guide
-    └── cdpr_ros2_bridge.py   # Optional ROS 2 node bridging JointState and Pose topics
+│   ├── setup_dev.sh / .ps1       # Environment setup script
+│   ├── run_simulation.sh / .ps1  # Launch backend and simulation
+│   ├── run_tests.sh / .ps1       # Run full automated test suite
+│   ├── start_ros2.sh / .ps1      # Build and launch ROS 2 workspace
+│   ├── diagnostics.sh / .ps1     # System health and configuration check
+│   └── benchmark_performance.py  # Algorithmic execution time profiler
+└── docs/
+    ├── architecture.md           # Detailed system architecture
+    ├── robot_geometry.md         # Coordinate frames and anchor vectors
+    ├── kinematics.md             # Equations for IK, Jacobian, FK, and tension
+    ├── ros2_integration.md       # ROS 2 build, launch, and QoS guide
+    ├── micro_ros_setup.md        # ESP32 firmware build, flash, and agent guide
+    ├── hardware_setup.md         # Hardware capability audit and wiring rules
+    ├── commissioning.md          # 7-stage physical commissioning workflow
+    ├── safety.md                 # Safety architecture and risk mitigations
+    ├── troubleshooting.md        # Comprehensive diagnostic checklist
+    └── validation_report.md      # Test logs, timing benchmarks, blocked items
 ```
 
 ---
 
-## 3. Installation and Quickstart
+## 5. Quickstart & Execution Commands
 
-### 3.1 Install Dependencies
-```bash
-pip install -r backend/requirements.txt
+### 5.1 System Diagnostics & Health Check
+Verify your environment and configuration:
+```powershell
+.\scripts\diagnostics.ps1
+# Or on Linux: ./scripts/diagnostics.sh
 ```
 
-### 3.2 Run Automated Tests
-```bash
-pytest tests/ -v
+### 5.2 Run Automated Tests
+Execute the comprehensive 37-test suite:
+```powershell
+.\scripts\run_tests.ps1
+# Or directly: python -m pytest tests/ -v
 ```
-All 25 unit and integration tests run in under 5 seconds.
 
-### 3.3 Launch Application
-```bash
-python -m backend.main
+### 5.3 Launch Browser Digital Twin & Simulation Backend
+```powershell
+.\scripts\run_simulation.ps1
+# Or directly: python -m backend.main
 ```
 Open your browser to:
-[http://localhost:8000](http://localhost:8000)
+**[http://localhost:8000](http://localhost:8000)**
 
-The web client connects automatically to the backend over WebSocket and streams real-time telemetry.
-
-### 3.4 Generate Offline Engineering Plots
+### 5.4 Benchmark Mathematical Performance
 ```bash
-python -m scripts.generate_plots
+python scripts/benchmark_performance.py
 ```
-Saves high-resolution verification charts directly into the `docs/` folder.
+
+### 5.5 ROS 2 Workspace (Ubuntu 22.04 LTS / WSL2)
+```bash
+cd ros2_ws
+rosdep install --from-paths src --ignore-src -r -y
+colcon build --symlink-install
+source install/setup.bash
+ros2 launch cdpr_bringup simulation.launch.py
+```
+
+### 5.6 ESP32 micro-ROS Firmware Build
+```bash
+cd firmware/esp32_micro_ros
+idf.py set-target esp32
+idf.py build
+idf.py -p /dev/ttyUSB0 flash monitor
+```
+
+---
+
+## 6. Algorithmic Performance Benchmarks
+
+Measured on the development host (5,000 iterations):
+
+| Component | Mean Execution Time | Frequency Capability | Requirement |
+|---|---|---|---|
+| **Inverse Kinematics + Jacobian** | $66.79\ \mu\text{s}$ | $14,972\text{ Hz}$ | $100\text{ Hz}$ ($150\times$ margin) |
+| **Forward Kinematics (Levenberg-Marquardt)** | $427.36\ \mu\text{s}$ | $2,340\text{ Hz}$ | $100\text{ Hz}$ ($23\times$ margin) |
+| **Static Tension Allocation (`lsq_linear`)** | $206.01\ \mu\text{s}$ | $4,854\text{ Hz}$ | $100\text{ Hz}$ ($48\times$ margin) |
+| **Full Physics Simulation Step** | $641.91\ \mu\text{s}$ | $1,558\text{ Hz}$ | $100\text{ Hz}$ ($15.5\times$ margin) |
+
+---
+
+## 7. Current Limitations & Hardware Readiness
+
+In strict adherence to Rules 0.2 and 0.3:
+- **Provisional Hardware:** Exact motor models, drive communication protocols (CANopen vs Step/Dir vs Modbus), and encoder resolutions are not yet physically confirmed.
+- **Safety Interlock:** Physical motor arming is intentionally locked in software until the physical commissioning checklist (`docs/commissioning.md`) is completed.
+- **Offline First:** The digital twin is fully self-contained and operates without physical hardware or ROS 2 installed.

@@ -185,11 +185,11 @@ class EngineeringView {
 
       // (d) Spool Drum & Output Shaft (aligned at exact anchor point ax, ay)
       const drumRadPx = 10 * this.scale;
-      ctx.fillStyle = '#059669';
+      ctx.fillStyle = '#facc15';
       ctx.beginPath();
       ctx.arc(toPxX(ax), toPxY(ay), drumRadPx, 0, Math.PI * 2);
       ctx.fill();
-      ctx.strokeStyle = '#ffd700';
+      ctx.strokeStyle = '#ca8a04';
       ctx.lineWidth = 1.5;
       ctx.stroke();
 

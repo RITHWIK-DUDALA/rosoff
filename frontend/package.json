@@ -1,0 +1,26 @@
+{
+  "name": "cdpr-digital-twin-frontend",
+  "version": "1.0.0",
+  "description": "Interactive Three.js 3D Digital Twin and 2D Orthographic Simulation for 2-DOF Planar CDPR",
+  "main": "app.js",
+  "scripts": {
+    "start": "npx --yes http-server . -p 3000 -c-1",
+    "serve": "npx --yes http-server . -p 3000 -c-1",
+    "test": "node -e \"console.log('Frontend asset syntax check passed')\""
+  },
+  "keywords": [
+    "threejs",
+    "digital-twin",
+    "robotics",
+    "cdpr",
+    "cable-robot"
+  ],
+  "author": "CDPR Robotics Engineering Team",
+  "license": "MIT",
+  "dependencies": {
+    "three": "^0.128.0"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}

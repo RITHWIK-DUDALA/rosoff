@@ -1,0 +1,20 @@
+# Get Canonical Robot Configuration Service
+---
+string robot_id
+string schema_version
+float64 frame_width_m
+float64 frame_height_m
+float64 frame_depth_m
+float64 platform_width_m
+float64 platform_height_m
+float64 platform_thickness_m
+float64 platform_mass_kg
+float64 spool_radius_m
+float64 max_motor_rpm
+float64 max_motor_torque_nm
+float64 workspace_x_min_m
+float64 workspace_x_max_m
+float64 workspace_y_min_m
+float64 workspace_y_max_m
+geometry_msgs/Point[4] frame_anchors
+geometry_msgs/Point[4] platform_attachments

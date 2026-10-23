@@ -1,0 +1,69 @@
+# Hardware Capability Profile for Planar Cable-Driven Parallel Robot (CDPR)
+# Schema: Hardware Readiness & Safety Interlocks
+# Per Rule 0.2: Unknown specifications must remain explicit.
+# Verification states: unknown, unverified, verified
+
+hardware:
+  schema_version: "1.0.0"
+  status: "unverified" # Overall system status: "unverified" | "commissioning" | "verified"
+
+  controller:
+    type: "esp32"
+    model: "unknown" # e.g. "ESP32-WROOM-32D", "ESP32-S3-WROOM-1" (to be confirmed)
+    revision: "unknown"
+    firmware: "micro_ros"
+    firmware_version: "0.1.0-dev"
+    firmware_compiled: false
+    verified: false
+
+  transport:
+    type: "unknown" # "serial_uart" | "wifi_udp"
+    baud_rate: 115200 # For serial transport
+    ip_address: "unknown" # For UDP transport
+    port: 8888
+    verified: false
+
+  drives:
+    count: 4
+    model: "unknown" # e.g. "ODrive_v3.6", "Dynamixel_XH540", "Leadshine_CL42"
+    protocol: "unknown" # "can_fd" | "rs485_modbus" | "step_dir" | "ethercat"
+    verified: false
+    baud_rate_bps: 0
+    cycle_time_ms: 0.0
+
+  motors:
+    count: 4
+    model: "unknown" # e.g. "BLDC_5010", "NEMA17_ClosedLoop"
+    rated_voltage_v: 0.0
+    continuous_current_limit_a: 0.0
+    peak_current_limit_a: 0.0
+    continuous_torque_limit_nm: 0.40 # Provisional
+    max_speed_rpm: 300.0 # Provisional
+    encoder_type: "unknown" # "incremental_optical" | "absolute_magnetic" | "hall_sensor"
+    encoder_resolution_cpr: 0 # Counts per revolution (drum)
+    feedback_available: "unknown" # "measured" | "estimated" | "none"
+    verified: false
+
+  actuator_mapping:
+    # Physical rotation direction corresponding to positive cable unspooling (+dL/dt > 0)
+    channel_direction_signs: [1, 1, 1, 1] # +1 or -1 per channel, must be validated during low-speed commissioning
+    verified: false
+
+  motion:
+    position_mode_supported: "unknown"
+    velocity_mode_supported: "unknown"
+    torque_mode_supported: "unknown"
+    control_mode_active: "none"
+
+  safety:
+    emergency_stop_software: true
+    emergency_stop_hardware_verified: false
+    sto_available: "unknown"
+    homing_verified: false
+    limits_verified: false
+    watchdog_timeout_ms: 250
+    stale_feedback_timeout_ms: 500
+
+  # Hardware motion gate: STRICTLY FALSE until all safety & hardware criteria pass
+  hardware_motion_enabled: false
+  homing_state: "UNREFERENCED" # "UNREFERENCED" | "HOMING_IN_PROGRESS" | "HOMED" | "FAULT"

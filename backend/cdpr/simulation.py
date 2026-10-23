@@ -5,7 +5,7 @@ Coordinates:
 2. Analytical inverse kinematics & differential kinematics
 3. Rigid-cable platform dynamics & tension allocation
 4. Actuator speed & torque integration with saturation checks
-5. Forward kinematics validation / pose recovery
+5. Forward kinematics state estimation & pose recovery with provenance tagging
 6. Workspace, collision, tension, and fault monitoring
 7. Telemetry compilation
 """
@@ -22,6 +22,8 @@ from backend.cdpr.dynamics import PlatformDynamics
 from backend.cdpr.trajectory import TrajectoryPlanner
 from backend.cdpr.controller import Controller
 from backend.cdpr.state import TelemetryData
+from backend.cdpr.state_estimation.estimator import StateEstimator, StateEstimateResult
+from backend.cdpr.hardware.driver_base import MeasurementProvenance, OperatingMode, HomingState
 
 
 class CDPRSimulation:
@@ -35,6 +37,7 @@ class CDPRSimulation:
         self.dynamics = PlatformDynamics(self.kin, self.tension_solver)
         self.planner = TrajectoryPlanner(self.config, self.kin, self.tension_solver, self.collision)
         self.controller = Controller(self.config, self.planner)
+        self.state_estimator = StateEstimator(self.kin, stale_timeout_s=self.config.safety.stale_telemetry_timeout_s)
 
         # Simulation time state
         self.dt = self.config.simulation.timestep_s
@@ -49,6 +52,9 @@ class CDPRSimulation:
         init_lengths = self.geom.cable_lengths(self.q)
         self.actuators.reset(init_lengths)
         self.controller.set_position(self.q)
+
+        # Operating mode
+        self.operating_mode: str = OperatingMode.SIMULATION.value
 
         # Latest telemetry snapshot
         self.latest_telemetry: Optional[TelemetryData] = None
@@ -112,8 +118,16 @@ class CDPRSimulation:
             if s.torque_saturated and "TORQUE_LIMIT" not in faults:
                 faults.append("TORQUE_LIMIT")
 
-        # 7. Tracking error
-        tracking_err_m = float(np.linalg.norm(self.q - target_q))
+        # 7. State Estimation via Forward Kinematics
+        est_res: StateEstimateResult = self.state_estimator.estimate_state(
+            measured_lengths=cable_lengths,
+            commanded_q=target_q,
+            measurement_timestamp=self.sim_time,
+            provenance=MeasurementProvenance.SIMULATED,
+        )
+
+        # Tracking error calculation (only valid if estimate converged)
+        tracking_err_mm = float(est_res.tracking_error_m * 1000.0) if est_res.tracking_error_valid else 0.0
 
         # 8. Compile Telemetry
         self.latest_telemetry = TelemetryData(
@@ -131,22 +145,30 @@ class CDPRSimulation:
             cable_tensions_N=[float(t) for t in dyn_state.cable_tensions],
             motor_speeds_rpm=motor_rpms,
             motor_torques_Nm=motor_torques,
-            tracking_error_mm=float(tracking_err_m * 1000.0),
+            tracking_error_mm=tracking_err_mm,
             controller_mode=self.controller.mode,
             workspace_safe=col_res.is_safe,
             collision_safe=col_res.is_safe,
             tension_feasible=dyn_state.is_feasible,
-            solver_converged=ik_res.is_valid,
+            solver_converged=ik_res.is_valid and est_res.is_valid,
             constraint_residuals_mm=[float(c * 1000.0) for c in dyn_state.constraint_residuals],
             condition_number=float(cond_num),
             active_faults=faults,
-            trajectory_progress_pct=progress_pct
+            trajectory_progress_pct=progress_pct,
+            operating_mode=self.operating_mode,
+            position_provenance="simulated",
+            estimated_x_mm=float(est_res.q_estimated[0] * 1000.0) if est_res.is_valid else float("nan"),
+            estimated_y_mm=float(est_res.q_estimated[1] * 1000.0) if est_res.is_valid else float("nan"),
+            estimated_valid=est_res.is_valid,
+            tracking_error_valid=est_res.tracking_error_valid,
+            is_stale=est_res.is_stale,
+            homing_state="HOMED",
         )
 
         self.sim_time += self.dt
 
     def reset(self):
-        """Resets simulation to initial state."""
+        """Resets simulation to initial home state."""
         self.sim_time = 0.0
         self.q = np.zeros(2, dtype=np.float64)
         self.q_dot = np.zeros(2, dtype=np.float64)

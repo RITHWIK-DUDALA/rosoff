@@ -1,0 +1,9 @@
+# Set CDPR Operating Mode Service
+# Mode: "SIMULATION" or "HARDWARE"
+
+string requested_mode
+---
+bool success
+string active_mode
+string message
+string[] missing_prerequisites

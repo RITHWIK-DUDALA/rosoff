@@ -328,8 +328,8 @@ class BlueprintView {
       ctx.strokeRect(toX(blueX - 5), toY(blueY + 5), 10 * scale, 10 * scale);
 
       // Spool Winch Drum (radius = 10 mm, diameter = 20 mm)
-      ctx.fillStyle = '#1e3a5f';
-      ctx.strokeStyle = '#ffd700';
+      ctx.fillStyle = '#facc15';
+      ctx.strokeStyle = '#ca8a04';
       ctx.lineWidth = 1.8;
       ctx.beginPath();
       ctx.arc(toX(ax), toY(ay), this.drumR * scale, 0, Math.PI * 2);
