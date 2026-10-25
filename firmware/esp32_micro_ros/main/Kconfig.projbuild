@@ -1,0 +1,15 @@
+menu "micro-ROS CDPR Firmware Settings"
+
+    config MICRO_ROS_APP_STACK
+        int "Stack size of the micro-ROS task (Bytes)"
+        default 16384
+        help
+            Stack size in Bytes for the micro-ROS FreeRTOS task.
+
+    config MICRO_ROS_APP_TASK_PRIO
+        int "Priority of the micro-ROS task"
+        default 5
+        help
+            Priority of the micro-ROS task (higher value means higher priority).
+
+endmenu

@@ -37,7 +37,7 @@ This firmware project implements the embedded micro-ROS client running on the ES
 |   - Communication timeout watchdog (250 ms)                 |
 |   - Automatic safe-stop on Agent disconnection              |
 |   - Motion NEVER re-arms automatically on reconnection      |
-|   - Unknown/unverified drives clamped to Safe Torque Off    |
+|   - Unknown/unverified drives: torque software-disabled (fail-closed); physical STO unverified |
 +-----------------|-------------------------------------------+
                   | Servo Drive Protocol (Isolated boundary)
                   | CAN-FD, RS-485 Modbus, or Step/Dir
@@ -100,7 +100,7 @@ The firmware enforces the following deterministic states:
 [DRIVE_STATUS_CHECK]
   | (Drives verified & ready)
   v
-[READY] (Motors Disarmed / Safe Torque Off active)
+[READY] (Motors Disarmed / Software torque-disabled)
   | (Explicit enable command + Valid target)
   v
 [MOTION_ENABLED]
@@ -112,9 +112,9 @@ The firmware enforces the following deterministic states:
 
 ### Safety Interlocks Enforced in Firmware:
 1. **No Auto-Arming:** Reconnecting to the micro-ROS Agent **never** re-enables motor torque. An explicit operator command must be issued after reconnection.
-2. **Watchdog Timeout:** If no valid command packet is received within `250 ms`, the firmware immediately transitions to `SAFE_STOP`, clamping target velocities to zero.
+2. **Watchdog Timeout:** If no valid command packet is received within `250 ms`, the firmware immediately transitions to `SAFE_STOP`, clamping target velocities to zero. Software SAFE_STOP is a software-latched interlock and must be distinguished from physical emergency stop or certified STO hardware.
 3. **No Replay of Stale Commands:** Each command packet includes a timestamp and sequence number; out-of-order or stale commands are discarded.
-4. **Unverified Drive Protection:** While servo drive protocols remain unverified, physical motor outputs remain in Safe Torque Off (STO).
+4. **Unverified Drive Protection:** While servo drive protocols and feedback wiring remain unverified, the servo driver interface operates as a fail-closed stub. Torque commands remain strictly software-disabled (returns `CDPR_SERVO_ERR_UNVERIFIED_HARDWARE`), and all actuator motion is prohibited. No physical actuation, STO hardware, or sensor feedback has been verified.
 
 ---
 

@@ -4,7 +4,7 @@
 
 The embedded subsystem lives in `firmware/esp32_micro_ros/`. It provides an isolated, low-overhead micro-ROS client designed to execute on an Espressif ESP32 SoC.
 
-The ESP32 communicates with the host computer (running the micro-ROS Agent) and bridges trajectory setpoints to four servo drives while reading back drive status and encoder registers.
+The ESP32 communicates with the host computer (running the micro-ROS Agent). Since physical servo drives, feedback encoders, and STO circuits are currently unverified, the servo driver interface operates as a fail-closed stub: motor torque remains strictly software-disabled and feedback telemetry is explicitly flagged as unavailable.
 
 ---
 
