@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PROJECT W.A.L.L. — Planar Cable-Driven Robotic Surface Printer Cockpit</title>
+  <link rel="stylesheet" href="style.css?v=7.0">
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Local Three.js and OrbitControls (100% Offline Guaranteed) -->
+  <script src="libs/three.min.js"></script>
+  <script src="libs/OrbitControls.js"></script>
+</head>
+<body>
+  <div class="cockpit-shell">
+    <!-- Top Engineering Navbar -->
+    <header class="navbar">
+      <div class="brand">
+        <div class="brand-symbol"><div class="symbol-dot"></div></div>
+        <div>
+          <div class="brand-title">PROJECT W.A.L.L.</div>
+          <div class="brand-subtitle">4-Cable Planar Surface Printer &bull; Interactive Digital Twin</div>
+        </div>
+      </div>
+
+      <div class="nav-center">
+        <div class="status-chip">
+          <span class="live-dot" id="live-indicator"></span>
+          <span class="chip-text" id="ws-status-text">CONNECTING</span>
+        </div>
+        <div class="state-badge" id="supervisor-badge">READY</div>
+        <div class="time-display" id="sim-clock">T+ 0.00s</div>
+      </div>
+
+      <!-- Unified Multi-Page Suite Navigation -->
+      <nav class="proc-nav-links" style="margin: 0 12px;">
+        <a href="index.html" class="nav-tab-btn active" title="Live 3D Digital Twin Cockpit">Cockpit</a>
+        <a href="processor.html" class="nav-tab-btn" title="CAM Image Processor">Processor</a>
+        <a href="recipe.html" class="nav-tab-btn" title="Paint & BOM Formulation">Paint & BOM</a>
+        <a href="logs.html" class="nav-tab-btn" title="Flight Recorder & Execution Logs">Flight Logs</a>
+        <a href="blueprint.html" class="nav-tab-btn" title="8-Sheet Technical CAD Blueprints">CAD Blueprints</a>
+        <a href="actuator.html" class="nav-tab-btn" style="border-color: #f59e0b; color: #f59e0b;" title="HYPER-ACTUATOR Mk-1 Innovation Studio">HYPER-ACTUATOR</a>
+        <a href="uvwall600.html" class="nav-tab-btn" style="border-color: #06b6d4; color: #06b6d4; font-weight: 700;" title="UVWALL-600 Industrial 3D Visualizer & Drawings">UVWALL-600 3D</a>
+      </nav>
+
+      <div class="nav-actions">
+        <button class="btn-ghost" id="btn-reset-sys" title="Reset system state">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          Reset
+        </button>
+        <button class="btn-danger" id="btn-estop-main">EMERGENCY STOP</button>
+      </div>
+    </header>
+
+    <!-- Main Triple-Pane Unified Workspace -->
+    <main class="cockpit-grid">
+      <!-- 1. LEFT PANE: Artwork Studio & Controls (330px) -->
+      <aside class="side-panel left-panel">
+        <div class="panel-section">
+          <div class="section-header">
+            <h3>Artwork Studio</h3>
+            <span class="badge-subtle">Image Input</span>
+          </div>
+
+          <!-- Drag & Drop Upload Zone -->
+          <div class="upload-dropzone" id="artwork-dropzone">
+            <input type="file" id="artwork-file-input" accept="image/png, image/jpeg, image/webp" hidden>
+            <div class="upload-icon-wrap">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            </div>
+            <div class="upload-title">Drop Artwork Image Here</div>
+            <div class="upload-hint">PNG, JPG, WebP up to 25 MB</div>
+            <button class="btn-outline-sm" type="button" id="btn-browse-file">Browse File</button>
+          </div>
+
+          <!-- Uploaded Preview -->
+          <div class="artwork-preview-card" id="artwork-preview-box" style="display: none;">
+            <img id="artwork-thumbnail" class="thumbnail-img" alt="Artwork Preview">
+            <div class="artwork-meta">
+              <div class="artwork-filename" id="artwork-meta-name">artwork.png</div>
+              <div class="artwork-details" id="artwork-meta-details">0 &times; 0 px &bull; Ready</div>
+              <div class="artwork-waypoints-badge" id="artwork-wps-badge">0 waypoints generated</div>
+            </div>
+          </div>
+
+          <!-- Actuator Module Selector -->
+          <div class="form-group">
+            <label class="form-label">Printing Technology</label>
+            <div class="module-selector">
+              <label class="module-radio active" id="opt-mod-a">
+                <input type="radio" name="print_module" value="inkjet" checked>
+                <div class="radio-content">
+                  <div class="radio-title">Module A: Piezo Inkjet</div>
+                  <div class="radio-desc">48-nozzle array &bull; 14 pL &bull; 2.0mm standoff</div>
+                </div>
+              </label>
+              <label class="module-radio" id="opt-mod-b">
+                <input type="radio" name="print_module" value="paint">
+                <div class="radio-content">
+                  <div class="radio-title">Module B: Paint Marker (Spring)</div>
+                  <div class="radio-desc">6mm felt tip &bull; 1.2N compliance spring</div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Print Scaling -->
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Width (mm)</label>
+              <input type="number" class="form-input" id="input-print-w" value="300" min="50" max="600">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Height (mm)</label>
+              <input type="number" class="form-input" id="input-print-h" value="250" min="50" max="400">
+            </div>
+          </div>
+
+          <!-- Surface & Mounting -->
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Surface Material</label>
+              <select class="form-select" id="studio-material-select">
+                <option value="smooth_panel">Smooth Primed Panel</option>
+                <option value="painted_plaster">Painted Plaster</option>
+                <option value="rough_plaster">Rough Plaster</option>
+                <option value="wood">Hardwood Board</option>
+                <option value="glass">Architectural Glass</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Mounting Rig</label>
+              <select class="form-select" id="studio-mounting-select">
+                <option value="suction">Pneumatic Suction</option>
+                <option value="clamp">Mechanical Clamps</option>
+                <option value="frame">Rigid Frame</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Print Action Buttons -->
+          <div class="print-actions">
+            <button class="btn-primary-large" id="btn-start-print-main">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              Start Surface Print
+            </button>
+            <div class="button-row">
+              <button class="btn-secondary" id="btn-pause-print-main">Pause</button>
+              <button class="btn-secondary" id="btn-resume-print-main">Resume</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Scenarios 1-12 Selector -->
+        <div class="panel-section" style="border-top: 1px solid var(--border-subtle); margin-top: 12px; padding-top: 12px;">
+          <div class="section-header">
+            <h3>Validation Scenarios</h3>
+            <span class="badge-subtle">Part 19</span>
+          </div>
+          <select class="form-select" id="select-scenario-exec" style="margin-bottom: 8px;">
+            <option value="scenario_1">Scenario 1: Basic Installation</option>
+            <option value="scenario_2">Scenario 2: Centre Movement</option>
+            <option value="scenario_3">Scenario 3: Cable Slack Detection</option>
+            <option value="scenario_4">Scenario 4: Cable Overload Protection</option>
+            <option value="scenario_5">Scenario 5: Emergency Stop Interrupt</option>
+            <option value="scenario_6">Scenario 6: 1200x900 Dimension Resize</option>
+            <option value="scenario_7">Scenario 7: Mounting Incompatibility</option>
+            <option value="scenario_8">Scenario 8: Cable Slack Halt & Recovery</option>
+            <option value="scenario_9">Scenario 9: Paint vs Inkjet Module Swap</option>
+            <option value="scenario_10">Scenario 10: Position Error & Drift</option>
+            <option value="scenario_11">Scenario 11: Interrupted Printing</option>
+            <option value="scenario_12">Scenario 12: Full Autonomous Print Cycle</option>
+          </select>
+          <button class="btn-secondary" id="btn-trigger-scenario" style="width: 100%;">Execute Scenario</button>
+          <div id="scenario-result-msg" style="margin-top: 6px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent-amber);"></div>
+        </div>
+      </aside>
+
+      <!-- 2. CENTER STAGE: Hero 3D Mechanism & Digital Twin -->
+      <section class="center-stage">
+        <!-- Floating Top Overlay Controls -->
+        <div class="stage-overlay-top">
+          <div class="overlay-pill">
+            <span class="pill-label">End-Effector:</span>
+            <span class="pill-val" id="hud-pos">X: 400.0 &bull; Y: 300.0</span>
+          </div>
+          <div class="overlay-pill">
+            <span class="pill-label">Droplets:</span>
+            <span class="pill-val" id="hud-droplets">0</span>
+          </div>
+          <div class="overlay-pill">
+            <span class="pill-label">Coverage:</span>
+            <span class="pill-val" id="hud-coverage">0.0%</span>
+          </div>
+          <div class="overlay-pill">
+            <span class="pill-label">KCI Dexterity:</span>
+            <span class="pill-val" id="hud-kci">0.85</span>
+          </div>
+          <div class="overlay-pill">
+            <span class="pill-label">Tracking Err:</span>
+            <span class="pill-val" id="hud-err">0.02 mm</span>
+          </div>
+
+          <div class="view-toggle-group">
+            <button class="btn-toggle active" id="btn-view-3d">3D Mechanism</button>
+            <button class="btn-toggle" id="btn-view-canvas">2D Canvas</button>
+          </div>
+        </div>
+
+        <!-- 3D Three.js Mechanism Container -->
+        <div id="three-viewport" class="viewport-canvas-container"></div>
+
+        <!-- 2D Progressive Canvas (Hidden unless toggled) -->
+        <div id="canvas-2d-container" class="viewport-canvas-container" style="display: none;">
+          <canvas id="studio-progressive-canvas"></canvas>
+        </div>
+
+        <!-- Bottom Jogging Bar -->
+        <div class="stage-overlay-bottom">
+          <span class="jog-label">Cartesian Jog:</span>
+          <button class="btn-jog" id="jog-x-minus">&minus;10 X</button>
+          <button class="btn-jog" id="jog-x-plus">+10 X</button>
+          <button class="btn-jog" id="jog-y-minus">&minus;10 Y</button>
+          <button class="btn-jog" id="jog-y-plus">+10 Y</button>
+          <button class="btn-jog accent" id="jog-center-btn">Center (400, 300)</button>
+        </div>
+      </section>
+
+      <!-- 3. RIGHT PANE: Motor Dynos & Cable Tensions (320px) -->
+      <aside class="side-panel right-panel">
+        <div class="panel-section">
+          <div class="section-header">
+            <h3>4 Winch Motors</h3>
+            <span class="badge-subtle">NEMA 17 &bull; 5.18:1</span>
+          </div>
+
+          <div class="motors-vertical-list">
+            <div class="motor-row-card">
+              <div class="motor-row-top">
+                <span class="motor-label">M1 (Upper-Left)</span>
+                <span class="motor-rpm" id="m1-rpm-val">0 RPM</span>
+              </div>
+              <div class="motor-stats-line">
+                <span>Torque: <b id="m1-torque-val">0.12 Nm</b></span>
+                <span>Layer: <b id="m1-layer-val">1</b></span>
+                <span>Temp: <b id="m1-temp-val">25.0°C</b></span>
+              </div>
+            </div>
+
+            <div class="motor-row-card">
+              <div class="motor-row-top">
+                <span class="motor-label">M2 (Upper-Right)</span>
+                <span class="motor-rpm" id="m2-rpm-val">0 RPM</span>
+              </div>
+              <div class="motor-stats-line">
+                <span>Torque: <b id="m2-torque-val">0.12 Nm</b></span>
+                <span>Layer: <b id="m2-layer-val">1</b></span>
+                <span>Temp: <b id="m2-temp-val">25.0°C</b></span>
+              </div>
+            </div>
+
+            <div class="motor-row-card">
+              <div class="motor-row-top">
+                <span class="motor-label">M3 (Lower-Left)</span>
+                <span class="motor-rpm" id="m3-rpm-val">0 RPM</span>
+              </div>
+              <div class="motor-stats-line">
+                <span>Torque: <b id="m3-torque-val">0.12 Nm</b></span>
+                <span>Layer: <b id="m3-layer-val">1</b></span>
+                <span>Temp: <b id="m3-temp-val">25.0°C</b></span>
+              </div>
+            </div>
+
+            <div class="motor-row-card">
+              <div class="motor-row-top">
+                <span class="motor-label">M4 (Lower-Right)</span>
+                <span class="motor-rpm" id="m4-rpm-val">0 RPM</span>
+              </div>
+              <div class="motor-stats-line">
+                <span>Torque: <b id="m4-torque-val">0.12 Nm</b></span>
+                <span>Layer: <b id="m4-layer-val">1</b></span>
+                <span>Temp: <b id="m4-temp-val">25.0°C</b></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4 Cable Tensions -->
+        <div class="panel-section" style="border-top: 1px solid var(--border-subtle); margin-top: 12px; padding-top: 12px;">
+          <div class="section-header">
+            <h3>4 Dyneema Cables</h3>
+            <span class="badge-subtle">2N – 50N Limits</span>
+          </div>
+
+          <div class="cables-vertical-list">
+            <div class="cable-bar-card">
+              <div class="cable-bar-top"><span>Cable C1 (UL)</span><b id="t1-val-text">12.0 N</b></div>
+              <div class="progress-bar-track"><div class="progress-bar-fill" id="t1-bar" style="width: 24%;"></div></div>
+            </div>
+            <div class="cable-bar-card">
+              <div class="cable-bar-top"><span>Cable C2 (UR)</span><b id="t2-val-text">12.0 N</b></div>
+              <div class="progress-bar-track"><div class="progress-bar-fill" id="t2-bar" style="width: 24%;"></div></div>
+            </div>
+            <div class="cable-bar-card">
+              <div class="cable-bar-top"><span>Cable C3 (LL)</span><b id="t3-val-text">12.0 N</b></div>
+              <div class="progress-bar-track"><div class="progress-bar-fill" id="t3-bar" style="width: 24%;"></div></div>
+            </div>
+            <div class="cable-bar-card">
+              <div class="cable-bar-top"><span>Cable C4 (LR)</span><b id="t4-val-text">12.0 N</b></div>
+              <div class="progress-bar-track"><div class="progress-bar-fill" id="t4-bar" style="width: 24%;"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quality Metrics & Audit Link -->
+        <div class="panel-section" style="border-top: 1px solid var(--border-subtle); margin-top: 12px; padding-top: 12px;">
+          <div class="section-header">
+            <h3>Quality & Audit</h3>
+            <span class="badge-subtle">TRL 4/5</span>
+          </div>
+          <div class="mini-stats-grid">
+            <div class="mini-stat"><span class="lbl">CIE &Delta;E</span><b class="val" id="audit-delta-e">0.00</b></div>
+            <div class="mini-stat"><span class="lbl">Coverage</span><b class="val" id="audit-cov">0.0%</b></div>
+            <div class="mini-stat"><span class="lbl">MAE Error</span><b class="val" id="audit-mae">0.00</b></div>
+            <div class="mini-stat"><span class="lbl">Edge Sharp</span><b class="val" id="audit-edge">0.0%</b></div>
+          </div>
+          <div style="margin-top: 8px; font-size: 11px; color: var(--text-muted);">
+            Production Audit: <a href="file:///c:/Users/LENOVO/OneDrive/Desktop/higgs/PROJECT-WALL/documentation/PRODUCTION_AUDIT.md" style="color: var(--accent-amber); text-decoration: underline;">PRODUCTION_AUDIT.md</a>
+          </div>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <script type="module" src="app_clean.js?v=7.0"></script>
+</body>
+</html>

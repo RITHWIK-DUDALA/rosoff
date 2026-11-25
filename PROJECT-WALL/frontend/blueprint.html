@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PROJECT W.A.L.L. — Complete 3D Engineering Blueprint Suite</title>
+  <!-- Technical Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="blueprint.css?v=7.0">
+  <!-- Local Three.js and OrbitControls -->
+  <script src="libs/three.min.js"></script>
+  <script src="libs/OrbitControls.js"></script>
+</head>
+<body class="blueprint-theme-classic">
+  <!-- Blueprint App Shell -->
+  <div class="bp-container">
+    
+    <!-- Top Engineering Navigation & Global Bar -->
+    <header class="bp-top-navbar">
+      <div class="bp-brand">
+        <div class="brand-symbol"><div class="symbol-dot"></div></div>
+        <div>
+          <div class="bp-main-title">PROJECT W.A.L.L. &bull; ENGINEERING BLUEPRINT SUITE</div>
+          <div class="bp-sub-title">Universal Planar Cable-Driven Autonomous Surface Printing System &bull; ISO 2768-mK</div>
+        </div>
+      </div>
+
+      <!-- Unified Multi-Page Suite Navigation -->
+      <nav class="bp-global-nav">
+        <a href="index.html" class="bp-nav-btn" title="Live 3D Digital Twin Cockpit">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+          Cockpit
+        </a>
+        <a href="processor.html" class="bp-nav-btn" title="CAM Image Processor & Motion Planner">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/></svg>
+          Processor
+        </a>
+        <a href="recipe.html" class="bp-nav-btn" title="Paint & Ink Recipe Formulation (BOM)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+          Paint & BOM
+        </a>
+        <a href="logs.html" class="bp-nav-btn" title="Flight Recorder & Diagnostics Console">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 14 15 20 9"/></svg>
+          Flight Logs
+        </a>
+        <a href="blueprint.html" class="bp-nav-btn active" title="8-Sheet Technical CAD Blueprints">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+          CAD Blueprints
+        </a>
+        <a href="actuator.html" class="bp-nav-btn" style="border-color: #f59e0b; color: #f59e0b;" title="HYPER-ACTUATOR Mk-1 Innovation Studio">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          HYPER-ACTUATOR
+        </a>
+      </nav>
+    </header>
+
+    <!-- Sub-Navbar: Dedicated Sheet Navigator & Blueprint Theme Controls -->
+    <div class="bp-sub-bar">
+      <nav class="sheet-nav" id="sheet-nav">
+        <button class="sheet-tab active" data-sheet="01"><span class="tab-num">01</span> System Assembly</button>
+        <button class="sheet-tab" data-sheet="02"><span class="tab-num">02</span> Winch Motor (A1..A4)</button>
+        <button class="sheet-tab" data-sheet="03"><span class="tab-num">03</span> Helical Drum</button>
+        <button class="sheet-tab" data-sheet="04"><span class="tab-num">04</span> Platform Chassis</button>
+        <button class="sheet-tab" data-sheet="05"><span class="tab-num">05</span> 1.2N Spring</button>
+        <button class="sheet-tab" data-sheet="06"><span class="tab-num">06</span> Module A (Piezo)</button>
+        <button class="sheet-tab" data-sheet="07"><span class="tab-num">07</span> Module B (Marker)</button>
+        <button class="sheet-tab" data-sheet="08"><span class="tab-num">08</span> Umbilical Wiring</button>
+        <button class="sheet-tab" data-sheet="09" style="border-color: #f59e0b; color: #f59e0b; font-weight: 700;"><span class="tab-num" style="background: rgba(245,158,11,0.2);">09</span> HYPER-ACTUATOR Mk-1 (NEW)</button>
+      </nav>
+
+      <div class="theme-toggle-group">
+        <button class="btn-tool active" id="btn-theme-cyan" title="Cyanotype Blueprint Theme">Blueprint Blue</button>
+        <button class="btn-tool" id="btn-theme-dark" title="Dark Industrial CAD Theme">Graphite CAD</button>
+      </div>
+    </div>
+
+    <!-- Main Blueprint Workspace (Split 2D Vector Blueprint & 3D Interactive CAD) -->
+    <main class="bp-workspace">
+      
+      <!-- LEFT / TOP VIEW: 2D Orthographic Vector Blueprint with Dimensions -->
+      <section class="bp-drawing-pane">
+        <div class="drawing-frame">
+          <!-- Drawing Canvas Container -->
+          <div class="blueprint-canvas-wrap" id="blueprint-canvas-wrap">
+            <svg id="blueprint-svg" class="blueprint-svg" viewBox="0 0 1100 750" preserveAspectRatio="xMidYMid meet">
+              <!-- Grid Background Generated in JS -->
+              <defs>
+                <pattern id="grid-minor" width="10" height="10" patternUnits="userSpaceOnUse">
+                  <path d="M 10 0 L 0 0 0 10" fill="none" class="grid-line-minor"/>
+                </pattern>
+                <pattern id="grid-major" width="50" height="50" patternUnits="userSpaceOnUse">
+                  <rect width="50" height="50" fill="url(#grid-minor)"/>
+                  <path d="M 50 0 L 0 0 0 50" fill="none" class="grid-line-major"/>
+                </pattern>
+                <!-- Dimension Arrow Markers -->
+                <marker id="arrow-start" viewBox="0 0 10 10" refX="0" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 5 L 10 1.5 L 7 5 L 10 8.5 Z" class="dim-arrow"/>
+                </marker>
+                <marker id="arrow-end" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                  <path d="M 0 1.5 L 10 5 L 0 8.5 L 3 5 Z" class="dim-arrow"/>
+                </marker>
+              </defs>
+
+              <rect width="100%" height="100%" fill="url(#grid-major)"/>
+
+              <!-- Dynamic Sheet Drawing Content injected via blueprint_app.js -->
+              <g id="sheet-content-group"></g>
+
+              <!-- Standard Engineering Border & Zone Markers (A, B, C, D | 1, 2, 3, 4) -->
+              <rect x="20" y="20" width="1060" height="710" fill="none" class="border-outer"/>
+              <rect x="25" y="25" width="1050" height="700" fill="none" class="border-inner"/>
+              
+              <!-- Zone Grid Letters/Numbers -->
+              <text x="35" y="15" class="zone-text">1</text>
+              <text x="290" y="15" class="zone-text">2</text>
+              <text x="550" y="15" class="zone-text">3</text>
+              <text x="810" y="15" class="zone-text">4</text>
+              <text x="1070" y="15" class="zone-text">5</text>
+              <text x="10" y="200" class="zone-text">A</text>
+              <text x="10" y="380" class="zone-text">B</text>
+              <text x="10" y="560" class="zone-text">C</text>
+
+              <!-- Standard Industrial Title Block (Lower Right Corner) -->
+              <g id="blueprint-title-block" transform="translate(670, 585)">
+                <rect x="0" y="0" width="400" height="135" class="title-block-bg"/>
+                <line x1="0" y1="26" x2="400" y2="26" class="title-block-line"/>
+                <line x1="0" y1="62" x2="400" y2="62" class="title-block-line"/>
+                <line x1="0" y1="98" x2="400" y2="98" class="title-block-line"/>
+                <line x1="210" y1="26" x2="210" y2="135" class="title-block-line"/>
+                <line x1="315" y1="62" x2="315" y2="135" class="title-block-line"/>
+
+                <!-- Title Block Texts -->
+                <text x="10" y="17" class="tb-company">PROJECT W.A.L.L. &bull; ADVANCED ROBOTICS DIVISION</text>
+
+                <!-- Row 1: Title & Number -->
+                <text x="10" y="38" class="tb-label">DRAWING TITLE:</text>
+                <text x="10" y="52" class="tb-val" id="tb-drawing-title">SYSTEM ASSEMBLY BLUEPRINT</text>
+
+                <text x="218" y="38" class="tb-label">DRAWING NUMBER:</text>
+                <text x="218" y="52" class="tb-val-mono" id="tb-drawing-number">DWG-WALL-CAD-001</text>
+
+                <!-- Row 2: Material, Tolerances, Scale -->
+                <text x="10" y="74" class="tb-label">MATERIAL / SPEC:</text>
+                <text x="10" y="88" class="tb-val-small" id="tb-material">6061-T6 / UHMWPE / ALLOY</text>
+
+                <text x="218" y="74" class="tb-label">TOLERANCES (ISO 2768-mK):</text>
+                <text x="218" y="88" class="tb-val-small">&plusmn;0.10 mm (&le;30) / &plusmn;0.20 (&gt;30)</text>
+
+                <text x="322" y="74" class="tb-label">SCALE:</text>
+                <text x="322" y="88" class="tb-val-small" id="tb-scale">1:1 FULL</text>
+
+                <!-- Row 3: Engineer, Revision, Sheet -->
+                <text x="10" y="110" class="tb-label">ENGINEER:</text>
+                <text x="10" y="124" class="tb-val-small">ANTIGRAV / CDPR LEAD</text>
+
+                <text x="218" y="110" class="tb-label">REVISION:</text>
+                <text x="218" y="124" class="tb-val-small">REV 4.0 (PROD)</text>
+
+                <text x="322" y="110" class="tb-label">SHEET:</text>
+                <text x="322" y="124" class="tb-val-small" id="tb-sheet-num">SHEET 01 OF 08</text>
+              </g>
+            </svg>
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT / BOTTOM VIEW: Interactive 3D CAD Isolated Part Viewport -->
+      <section class="bp-cad-pane">
+        <div class="cad-header">
+          <div class="cad-title-group">
+            <span class="cad-badge">3D CAD INSPECTION</span>
+            <span class="cad-part-name" id="cad-part-label">Full CDPR Mechanism</span>
+          </div>
+
+          <!-- 3D Toolbar -->
+          <div class="cad-tools">
+            <button class="btn-cad-tool active" id="btn-cad-solid" title="Solid Render">Solid</button>
+            <button class="btn-cad-tool" id="btn-cad-wire" title="Wireframe Mesh">Wireframe</button>
+            <button class="btn-cad-tool" id="btn-cad-xray" title="Transparent X-Ray">X-Ray</button>
+            <button class="btn-cad-tool" id="btn-cad-reset" title="Reset 3D View">Reset Camera</button>
+            <a href="exports/winch_drum.stl" download class="btn-cad-tool" id="btn-cad-download-stl" title="Download Real Manufacturing Binary STL File" style="text-decoration: none; color: var(--bp-accent); border-color: var(--bp-accent); font-weight: 700;">Download STL</a>
+          </div>
+        </div>
+
+        <!-- 3D WebGL Canvas Container -->
+        <div class="cad-viewport-container" id="cad-viewport-3d"></div>
+
+        <!-- CAD Inspection Parameters / Live Dimensions Card -->
+        <div class="cad-specs-footer" id="cad-specs-footer">
+          <div class="spec-cell">
+            <span class="spec-lbl">MASS / VOLUME</span>
+            <b class="spec-val" id="spec-mass">0.46 kg (EE Assembly)</b>
+          </div>
+          <div class="spec-cell">
+            <span class="spec-lbl">PRIMARY MATERIAL</span>
+            <b class="spec-val" id="spec-mat">6061-T6 Aircraft Aluminum</b>
+          </div>
+          <div class="spec-cell">
+            <span class="spec-lbl">FABRICATION METHOD</span>
+            <b class="spec-val" id="spec-fab">4-Axis CNC Milling</b>
+          </div>
+          <div class="spec-cell">
+            <span class="spec-lbl">CRITICAL TOLERANCE</span>
+            <b class="spec-val" id="spec-tol">&plusmn;0.02 mm (Shaft / Bores)</b>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Blueprint Logic -->
+  <script type="module" src="modules/blueprint_app.js?v=7.0"></script>
+</body>
+</html>
+

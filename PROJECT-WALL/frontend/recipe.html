@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PROJECT W.A.L.L. — Paint & Ink Recipe Formulation (BOM)</title>
+  <!-- Industrial Neutral Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="processor.css?v=7.0">
+  <style>
+    .recipe-layout {
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 16px;
+      padding: 16px;
+      flex: 1;
+      overflow-y: auto;
+    }
+    .swatch-card-lg {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-medium);
+      border-radius: 6px;
+      padding: 10px 14px;
+      margin-bottom: 8px;
+    }
+    .swatch-box-lg {
+      width: 42px;
+      height: 42px;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      flex-shrink: 0;
+    }
+    .swatch-title-lg {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .swatch-desc-lg {
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+    .bom-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      text-align: left;
+    }
+    .bom-table th {
+      background-color: var(--bg-surface);
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border-medium);
+      font-size: 11px;
+      text-transform: uppercase;
+    }
+    .bom-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border-subtle);
+      color: var(--text-main);
+    }
+    .bom-table tr:hover td {
+      background-color: var(--bg-surface);
+    }
+    .val-highlight {
+      font-family: var(--font-mono);
+      color: var(--accent-amber);
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="proc-shell">
+    
+    <!-- Top Engineering Navigation Bar -->
+    <header class="proc-navbar">
+      <div class="proc-brand">
+        <div class="brand-symbol"><div class="symbol-dot"></div></div>
+        <div>
+          <div class="brand-title">PROJECT W.A.L.L.</div>
+          <div class="brand-subtitle">Paint & Ink Recipe Formulation &bull; Chemical & Hardware BOM</div>
+        </div>
+      </div>
+
+      <!-- Navigation Links -->
+      <nav class="proc-nav-links">
+        <a href="index.html" class="nav-tab-btn" title="Live 3D Digital Twin Cockpit">Cockpit</a>
+        <a href="processor.html" class="nav-tab-btn" title="CAM Image Processor">Processor</a>
+        <a href="recipe.html" class="nav-tab-btn active" title="Paint & Ink Recipe (BOM)">Paint & BOM</a>
+        <a href="logs.html" class="nav-tab-btn" title="Flight Recorder & Diagnostics">Flight Logs</a>
+        <a href="blueprint.html" class="nav-tab-btn" title="CAD Blueprints">CAD Blueprints</a>
+      </nav>
+
+      <!-- System Status & Controls -->
+      <div class="proc-nav-status">
+        <div class="status-chip">
+          <span class="live-dot" id="live-indicator"></span>
+          <span class="chip-text" id="ws-status-text">CONNECTING</span>
+        </div>
+        <div class="state-badge" id="supervisor-badge">READY</div>
+        <div class="time-display" id="sim-clock">T+ 0.00s</div>
+        <a href="processor.html" class="btn-primary" style="text-decoration: none; padding: 5px 12px; font-size: 11px;">&larr; Back to CAM</a>
+      </div>
+    </header>
+
+    <!-- Main Content: Uncluttered 2-Column Recipe & BOM -->
+    <main class="recipe-layout">
+      
+      <!-- LEFT COLUMN: Color Pigments & Volume Formulation -->
+      <div style="display: flex; flex-direction: column; gap: 14px;">
+        <div class="proc-card">
+          <div class="card-header">
+            <h3>Analyzed Color Pigments</h3>
+            <span class="badge-amber" id="recipe-actuator-tag">MODULE A (INKJET)</span>
+          </div>
+          <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
+            Pigment volume requirements derived from digital artwork surface coverage, substrate absorption, and droplet matrix:
+          </p>
+          <div id="recipe-swatches-container">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Chemical & Physical Specs -->
+        <div class="proc-card">
+          <div class="card-header">
+            <h3>Chemical & Physical Specifications</h3>
+            <span class="badge-subtle">ISO 2813</span>
+          </div>
+          <div class="recipe-specs" style="gap: 8px;">
+            <div class="recipe-row"><span class="r-lbl">Recommended Formulation:</span><span class="r-val" id="spec-chem">Low-viscosity UV-curable / Solvent Nanoparticle</span></div>
+            <div class="recipe-row"><span class="r-lbl">Kinematic Viscosity:</span><span class="r-val" id="spec-visc">10.2 cP</span></div>
+            <div class="recipe-row"><span class="r-lbl">Surface Tension:</span><span class="r-val">28 &ndash; 32 mN/m</span></div>
+            <div class="recipe-row"><span class="r-lbl">Recommended Passes:</span><span class="r-val" id="spec-passes">1 Full Pass</span></div>
+            <div class="recipe-row"><span class="r-lbl">Inter-pass Drying Time:</span><span class="r-val" id="spec-dry">4.0 seconds</span></div>
+            <div class="recipe-row"><span class="r-lbl">Substrate Compatibility:</span><span class="r-val" id="spec-sub" style="color: var(--accent-amber);">Optimal Adhesion (Smooth Coated Panel)</span></div>
+            <div class="recipe-row"><span class="r-lbl">Estimated Total Consumption:</span><span class="r-val val-highlight" id="spec-total-vol">2.02 mL</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN: Complete Bill of Materials (BOM) -->
+      <div style="display: flex; flex-direction: column; gap: 14px;">
+        <div class="proc-card" style="flex: 1;">
+          <div class="card-header">
+            <h3>Print Job Bill of Materials (BOM)</h3>
+            <span class="badge-green">JOB VERIFIED</span>
+          </div>
+          <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
+            Complete mechanical consumables and hardware schedule required to execute this print job:
+          </p>
+
+          <table class="bom-table">
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Component / Consumable</th>
+                <th>Specification</th>
+                <th>Qty / Vol</th>
+                <th>Unit</th>
+              </tr>
+            </thead>
+            <tbody id="bom-table-body">
+              <tr>
+                <td>01</td>
+                <td>Primary Ink / Paint</td>
+                <td id="bom-ink-type">UV-Curable Pigment Ink</td>
+                <td class="val-highlight" id="bom-ink-qty">2.02</td>
+                <td>mL</td>
+              </tr>
+              <tr>
+                <td>02</td>
+                <td>Purge / Flush Solvent</td>
+                <td>Isopropanol &gt;99.5% HPLC Grade</td>
+                <td class="val-highlight">1.50</td>
+                <td>mL</td>
+              </tr>
+              <tr>
+                <td>03</td>
+                <td>Dispensing Matrix</td>
+                <td id="bom-dispenser">48-Nozzle Micro-Piezo Matrix (14 pL)</td>
+                <td>1</td>
+                <td>Module</td>
+              </tr>
+              <tr>
+                <td>04</td>
+                <td>Fluid Lines</td>
+                <td>PTFE Tubing (1.6mm ID x 3.2mm OD) with Luer-Locks</td>
+                <td>2</td>
+                <td>Lines (1.2m)</td>
+              </tr>
+              <tr>
+                <td>05</td>
+                <td>Dyneema SK78 Cables</td>
+                <td>0.8mm 12-strand braided UHMWPE (4x 1.2m)</td>
+                <td>4</td>
+                <td>Cables</td>
+              </tr>
+              <tr>
+                <td>06</td>
+                <td>Surface Substrate</td>
+                <td>Smooth Primed Architectural Panel (800x600mm)</td>
+                <td>1</td>
+                <td>Surface</td>
+              </tr>
+              <tr>
+                <td>07</td>
+                <td>Mounting Rig</td>
+                <td>Industrial Pneumatic Suction Cups (SF: 5.3)</td>
+                <td>4</td>
+                <td>Points</td>
+              </tr>
+              <tr>
+                <td>08</td>
+                <td>Stepper Actuators</td>
+                <td>NEMA 17 (1.5A, 0.42 Nm, 5.18:1 Planetary Gear)</td>
+                <td>4</td>
+                <td>Motors</td>
+              </tr>
+              <tr>
+                <td>09</td>
+                <td>Compliance Spring</td>
+                <td>ASTM A228 Spring Steel (k = 0.141 N/mm, L0 = 34mm)</td>
+                <td>1</td>
+                <td>Unit</td>
+              </tr>
+              <tr>
+                <td>10</td>
+                <td>Distance Sensor</td>
+                <td>VL53L1X Time-of-Flight Laser Sensor (I2C)</td>
+                <td>1</td>
+                <td>Sensor</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Actions -->
+          <div style="margin-top: 18px; display: flex; gap: 10px;">
+            <a href="processor.html" class="btn-primary" style="text-decoration: none;">
+              &larr; Back to CAM Processor
+            </a>
+            <a href="index.html" class="btn-secondary" style="text-decoration: none;">
+              Open 3D Live Cockpit
+            </a>
+            <a href="logs.html" class="btn-secondary" style="text-decoration: none;">
+              Open Flight Logs
+            </a>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script type="module">
+    const host = window.location.hostname || 'localhost';
+    const apiBase = `http://${host}:8000/api`;
+    const wsUrl = `ws://${host}:8000/ws`;
+
+    async function loadRecipeData() {
+      try {
+        const res = await fetch(`${apiBase}/telemetry`);
+        if (res.ok) {
+          const t = await res.json();
+          updateHeader(t);
+        }
+
+        // Fetch current active report
+        const aRes = await fetch(`${apiBase}/processor/current_report`);
+        if (aRes.ok) {
+          const aData = await aRes.json();
+          if (aData.report) renderRecipe(aData.report);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function renderRecipe(report) {
+      const rec = report.paint_recipe;
+      document.getElementById('recipe-actuator-tag').textContent = rec.recommended_actuator === 'paint' ? 'MODULE B (MARKER)' : 'MODULE A (INKJET)';
+      document.getElementById('spec-chem').textContent = rec.ink_chemistry;
+      document.getElementById('spec-visc').textContent = `${rec.viscosity_cp} cP`;
+      document.getElementById('spec-passes').textContent = `${rec.recommended_passes} Pass(es)`;
+      document.getElementById('spec-dry').textContent = `${rec.drying_time_per_pass_s} seconds`;
+      document.getElementById('spec-sub').textContent = `${rec.substrate_compatibility.status} (${rec.substrate_compatibility.material_name})`;
+      document.getElementById('spec-total-vol').textContent = `${rec.total_volume_ml} mL`;
+
+      document.getElementById('bom-ink-qty').textContent = rec.total_volume_ml;
+      document.getElementById('bom-dispenser').textContent = rec.actuator_display_name;
+
+      const container = document.getElementById('recipe-swatches-container');
+      if (container && rec.color_breakdown) {
+        container.innerHTML = '';
+        rec.color_breakdown.forEach(c => {
+          const div = document.createElement('div');
+          div.className = 'swatch-card-lg';
+          div.innerHTML = `
+            <div class="swatch-box-lg" style="background-color: ${c.hex_code};"></div>
+            <div>
+              <div class="swatch-title-lg">${c.name}</div>
+              <div class="swatch-desc-lg">Hex: <b>${c.hex_code}</b> &bull; Coverage: <b>${c.coverage_percent}%</b> &bull; Volume: <b class="val-highlight">${c.estimated_volume_ml} mL</b></div>
+            </div>
+          `;
+          container.appendChild(div);
+        });
+      }
+    }
+
+    function updateHeader(data) {
+      if (data.supervisor) {
+        document.getElementById('supervisor-badge').textContent = data.supervisor.state;
+      }
+      if (data.sim_time_s !== undefined) {
+        document.getElementById('sim-clock').textContent = `T+ ${data.sim_time_s.toFixed(2)}s`;
+      }
+    }
+
+    // Live WebSocket connection for header
+    function initWs() {
+      const dot = document.getElementById('live-indicator');
+      const wsText = document.getElementById('ws-status-text');
+      const ws = new WebSocket(wsUrl);
+      ws.onopen = () => {
+        if (dot) dot.className = 'live-dot active';
+        if (wsText) wsText.textContent = 'ONLINE';
+      };
+      ws.onmessage = (e) => {
+        try {
+          const d = JSON.parse(e.data);
+          updateHeader(d);
+        } catch (_) {}
+      };
+      ws.onclose = () => {
+        if (dot) dot.className = 'live-dot';
+        if (wsText) wsText.textContent = 'RETRY';
+        setTimeout(initWs, 3000);
+      };
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadRecipeData();
+      initWs();
+    });
+  </script>
+</body>
+</html>
+

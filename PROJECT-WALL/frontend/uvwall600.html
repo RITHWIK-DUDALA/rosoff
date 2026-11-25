@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UVWALL-600 — Live Printing Process & Digital Twin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <script src="libs/three.min.js"></script>
+  <script src="libs/OrbitControls.js"></script>
+  <style>
+    :root {
+      --bg-dark: #0a0d14;
+      --bg-panel: rgba(15, 20, 32, 0.95);
+      --bg-card: rgba(24, 32, 48, 0.9);
+      --border-color: rgba(255, 255, 255, 0.12);
+      --accent-cyan: #06b6d4;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-blue: #3b82f6;
+      --accent-purple: #a855f7;
+      --accent-red: #ef4444;
+      --text-main: #f8fafc;
+      --text-dim: #94a3b8;
+      --font-mono: 'JetBrains Mono', monospace;
+      --font-sans: 'Plus Jakarta Sans', sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Simple Navbar */
+    .top-nav {
+      height: 48px;
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 18px;
+      z-index: 20;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-dot {
+      width: 9px;
+      height: 9px;
+      background: var(--accent-cyan);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--accent-cyan);
+    }
+    .brand-title {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: 0.5px;
+    }
+    .process-pill {
+      background: rgba(6, 182, 212, 0.12);
+      border: 1px solid rgba(6, 182, 212, 0.35);
+      color: var(--accent-cyan);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .nav-links {
+      display: flex;
+      gap: 8px;
+    }
+    .nav-link {
+      color: var(--text-dim);
+      text-decoration: none;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 5px 10px;
+      border-radius: 4px;
+      border: 1px solid transparent;
+      transition: all 0.2s;
+    }
+    .nav-link:hover { color: var(--text-main); border-color: var(--border-color); }
+    .nav-link.active {
+      color: var(--accent-cyan);
+      background: rgba(6, 182, 212, 0.12);
+      border-color: var(--accent-cyan);
+      font-weight: 600;
+    }
+
+    /* Viewport Area */
+    .viewport-wrap {
+      position: relative;
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+    #webgl-canvas {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Process Sequence HUD (Top Banner) */
+    .sequence-banner {
+      position: absolute;
+      top: 14px;
+      left: 16px;
+      right: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .seq-step-card {
+      background: var(--bg-panel);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-color);
+      padding: 8px 14px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
+    }
+    .seq-badge {
+      background: var(--accent-cyan);
+      color: #000;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+    }
+    .seq-text {
+      color: var(--text-main);
+      font-weight: 600;
+    }
+
+    /* Live Print Progress Bar (Bottom Center) */
+    .print-progress-panel {
+      position: absolute;
+      bottom: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 480px;
+      background: var(--bg-panel);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 10px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      z-index: 10;
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+    }
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      color: var(--text-dim);
+    }
+    .progress-header b { color: var(--accent-green); }
+    .progress-bar-bg {
+      width: 100%;
+      height: 7px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, #06b6d4, #10b981);
+      transition: width 0.1s linear;
+    }
+
+    /* Simple Clean Control Center (Floating Left) */
+    .control-deck {
+      position: absolute;
+      top: 64px;
+      left: 16px;
+      width: 310px;
+      background: var(--bg-panel);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 10px 35px rgba(0, 0, 0, 0.6);
+      z-index: 10;
+    }
+    .deck-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border-color);
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--accent-cyan);
+    }
+    .select-art {
+      width: 100%;
+      padding: 8px 10px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      border-radius: 4px;
+      outline: none;
+      cursor: pointer;
+    }
+    .btn-action-primary {
+      background: var(--accent-cyan);
+      color: #041017;
+      border: none;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .btn-action-primary:hover {
+      background: #22d3ee;
+      box-shadow: 0 0 16px rgba(6, 182, 212, 0.5);
+    }
+    .btn-action-primary.running {
+      background: var(--accent-red);
+      color: #ffffff;
+      box-shadow: 0 0 16px rgba(239, 68, 68, 0.45);
+    }
+    .btn-grid-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+    .btn-secondary {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 8px;
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      border-radius: 4px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s;
+    }
+    .btn-secondary:hover {
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+    }
+    .btn-secondary.active {
+      background: rgba(6, 182, 212, 0.15);
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+      font-weight: 600;
+    }
+    .slider-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .slider-title {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10.5px;
+      font-family: var(--font-mono);
+      color: var(--text-dim);
+    }
+    .slider-title span.val {
+      color: var(--accent-amber);
+      font-weight: 600;
+    }
+    input[type="range"] {
+      width: 100%;
+      height: 5px;
+      border-radius: 3px;
+      background: var(--bg-card);
+      outline: none;
+      accent-color: var(--accent-cyan);
+    }
+
+    /* Camera Presets Dock (Bottom Center) */
+    .cam-dock {
+      position: absolute;
+      bottom: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--bg-panel);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 4px 6px;
+      display: flex;
+      gap: 4px;
+      z-index: 10;
+    }
+    .btn-view {
+      background: transparent;
+      border: none;
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      padding: 5px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-view:hover { color: var(--text-main); background: rgba(255, 255, 255, 0.08); }
+    .btn-view.active {
+      color: var(--accent-cyan);
+      background: rgba(6, 182, 212, 0.15);
+      font-weight: 700;
+    }
+
+    /* Blueprints Button (Top Right) */
+    .btn-blueprints {
+      position: absolute;
+      top: 14px;
+      right: 16px;
+      background: var(--bg-panel);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 15;
+      transition: all 0.2s;
+      pointer-events: auto;
+    }
+    .btn-blueprints:hover {
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+    }
+
+    /* Slide-out Drawer */
+    .drawer {
+      position: absolute;
+      top: 0;
+      right: -450px;
+      width: 420px;
+      height: 100%;
+      background: var(--bg-panel);
+      backdrop-filter: blur(16px);
+      border-left: 1px solid var(--border-color);
+      z-index: 25;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: -10px 0 35px rgba(0, 0, 0, 0.7);
+    }
+    .drawer.open { right: 0; }
+    .drawer-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .drawer-title {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent-cyan);
+    }
+    .btn-close-drawer {
+      background: transparent;
+      border: none;
+      color: var(--text-dim);
+      font-size: 18px;
+      cursor: pointer;
+    }
+    .dwg-viewport {
+      flex: 1;
+      background: #FFFFFF;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .dwg-viewport img { width: 100%; height: 100%; object-fit: contain; }
+  </style>
+</head>
+<body>
+
+  <!-- Top Simple Navbar -->
+  <header class="top-nav">
+    <div class="brand">
+      <div class="brand-dot"></div>
+      <div class="brand-title">UVWALL-600 &bull; LIVE PROCESS ENGINE</div>
+      <div class="process-pill">
+        <span style="display:inline-block;width:6px;height:6px;background:var(--accent-green);border-radius:50%;"></span>
+        <span id="txt-sys-status">EPSON I3200-U1 &bull; READY</span>
+      </div>
+    </div>
+    <nav class="nav-links">
+      <a href="index.html" class="nav-link">Cockpit</a>
+      <a href="blueprint.html" class="nav-link">Studio</a>
+      <a href="actuator.html" class="nav-link">Hyper-Actuator</a>
+      <a href="uvwall600.html" class="nav-link active">UVWALL-600</a>
+    </nav>
+  </header>
+
+  <!-- Viewport Area -->
+  <div class="viewport-wrap">
+    <div id="webgl-canvas"></div>
+
+    <!-- Active Process Sequence Banner -->
+    <div class="sequence-banner">
+      <div class="seq-step-card">
+        <span id="seq-step-num" class="seq-badge">STEP 1/5</span>
+        <span id="seq-step-title" class="seq-text">STANDBY &bull; CAPPING STATION ENGAGED</span>
+      </div>
+      <button class="btn-blueprints" onclick="openDrawer()">
+        <span>📐</span>
+        <span>VIEW BLUEPRINTS (14)</span>
+      </button>
+    </div>
+
+    <!-- Live Print Progress Bar -->
+    <div class="print-progress-panel">
+      <div class="progress-header">
+        <span>SWATH PROGRESS: <b id="prog-swath">PASS 00 / 27</b></span>
+        <span>JOB COMPLETION: <b id="prog-pct">0.0%</b></span>
+        <span>INK: <b id="prog-ink">0.0 mL</b></span>
+      </div>
+      <div class="progress-bar-bg">
+        <div id="progress-fill" class="progress-bar-fill"></div>
+      </div>
+    </div>
+
+    <!-- Simple Clean Control Center -->
+    <div class="control-deck">
+      <div class="deck-header">
+        <span>Printing Process Controls</span>
+        <span style="color:var(--text-dim);font-weight:400;">600x900 mm</span>
+      </div>
+
+      <!-- Artwork Pattern Selector -->
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        <span style="font-size:10px;font-family:var(--font-mono);color:var(--text-dim);">SELECT ARTWORK / TARGET:</span>
+        <select id="sel-art" class="select-art" onchange="changeArtwork(this.value)">
+          <option value="cmyk">CMYK Industrial Calibration Grid</option>
+          <option value="mural">Architectural Geometric Wall Mural</option>
+          <option value="sunset">Photorealistic Gradient Horizon</option>
+        </select>
+      </div>
+
+      <!-- Big Primary Action Button -->
+      <button id="btn-print" class="btn-action-primary">
+        <span id="btn-icon">▶</span>
+        <span id="btn-text">START FULL PRINTING PROCESS</span>
+      </button>
+
+      <!-- Step / Purge Actions -->
+      <div class="btn-grid-row">
+        <button id="btn-step" class="btn-secondary">⏭ STEP 1 SWATH</button>
+        <button id="btn-purge" class="btn-secondary">🧹 PURGE & WIPE</button>
+      </div>
+
+      <!-- Manual Sliders -->
+      <div class="slider-group">
+        <div class="slider-title">
+          <span>X Scan Axis (Belt)</span>
+          <span id="lbl-x" class="val">0.0 mm</span>
+        </div>
+        <input type="range" id="rng-x" min="-300" max="300" value="0" step="1">
+      </div>
+
+      <div class="slider-group">
+        <div class="slider-title">
+          <span>Z Elevation (Ballscrew)</span>
+          <span id="lbl-z" class="val">120.0 mm</span>
+        </div>
+        <input type="range" id="rng-z" min="100" max="950" value="120" step="1">
+      </div>
+
+      <!-- Quick Toggles -->
+      <div class="btn-grid-row">
+        <button id="btn-jet" class="btn-secondary active">JETTING: ON</button>
+        <button id="btn-uv" class="btn-secondary active">UV LAMP: ON</button>
+        <button id="btn-wall" class="btn-secondary active">WALL: ON</button>
+        <button id="btn-clear" class="btn-secondary">CLEAR WALL</button>
+      </div>
+    </div>
+
+    <!-- Camera Presets -->
+    <div class="cam-dock">
+      <button id="btn-view-iso" class="btn-view active" onclick="switchView('iso')">ISOMETRIC 3D</button>
+      <button id="btn-view-front" class="btn-view" onclick="switchView('front')">FRONT ELEVATION</button>
+      <button id="btn-view-close" class="btn-view" onclick="switchView('close')">NOZZLE ZOOM</button>
+      <button id="btn-view-side" class="btn-view" onclick="switchView('side')">SIDE CLEARANCE</button>
+    </div>
+
+    <!-- Slide-Out Blueprints Drawer -->
+    <div id="blueprints-drawer" class="drawer">
+      <div class="drawer-title-row">
+        <span class="drawer-title">ISO 128 Production Drawings</span>
+        <button class="btn-close-drawer" onclick="closeDrawer()">✕</button>
+      </div>
+
+      <select id="dwg-dropdown" class="select-art" onchange="changeDrawing(this.value)">
+        <option value="drawings/UVWALL_600_GA-001.svg">GA-001: General Arrangement & Envelope</option>
+        <option value="drawings/UVWALL_600_IN-001.svg">IN-001: Epson I3200 Precision Mount Plate</option>
+        <option value="drawings/UVWALL_600_CA-001.svg">CA-001: CNC Carriage Backing Plate</option>
+        <option value="drawings/UVWALL_600_FR-001.svg">FR-001: 4080 Vertical Mast & Frame</option>
+        <option value="drawings/UVWALL_600_FR-002.svg">FR-002: Base Outrigger & Levelling Feet</option>
+        <option value="drawings/UVWALL_600_ZA-001.svg">ZA-001: Z-Axis Rails & Ballscrew</option>
+        <option value="drawings/UVWALL_600_ZA-002.svg">ZA-002: Z Motor & 24V Safety Brake</option>
+        <option value="drawings/UVWALL_600_XA-001.svg">XA-001: X-Axis Crossbeam & Rail</option>
+        <option value="drawings/UVWALL_600_XA-002.svg">XA-002: HTD-3M Timing Belt Drive</option>
+        <option value="drawings/UVWALL_600_CA-002.svg">CA-002: Swath Alignment Mechanism</option>
+        <option value="drawings/UVWALL_600_CA-003.svg">CA-003: Wall Standoff Rollers</option>
+        <option value="drawings/UVWALL_600_UV-001.svg">UV-001: 395nm UV LED Curing Head</option>
+        <option value="drawings/UVWALL_600_MS-001.svg">MS-001: Capping & Wiper Station</option>
+        <option value="drawings/UVWALL_600_EL-001.svg">EL-001: Electrical Enclosure Routing</option>
+      </select>
+
+      <div class="dwg-viewport" onclick="openDrawingTab()">
+        <img id="dwg-image" src="drawings/UVWALL_600_GA-001.svg" alt="Technical Drawing">
+      </div>
+      <div style="font-size:10px;color:var(--text-dim);text-align:center;">
+        Click to open full-resolution SVG in a new tab
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // -------------------------------------------------------------
+    // THREE.JS SCENE SETUP
+    // -------------------------------------------------------------
+    const container = document.getElementById('webgl-canvas');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0c1018);
+
+    const camera = new THREE.PerspectiveCamera(42, container.clientWidth / container.clientHeight, 1, 8000);
+    // Glorious 3/4 Isometric Perspective showing front, top and depth clearly
+    camera.position.set(550, 750, 1550);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    container.appendChild(renderer.domElement);
+
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.08;
+    controls.target.set(0, 560, 0);
+
+    // Bright 3-Point Studio Lighting
+    const ambLight = new THREE.AmbientLight(0xffffff, 0.85);
+    scene.add(ambLight);
+
+    const keyLight = new THREE.DirectionalLight(0xffffff, 1.15);
+    keyLight.position.set(500, 1400, 1200);
+    scene.add(keyLight);
+
+    const fillLight = new THREE.DirectionalLight(0x38bdf8, 0.65);
+    fillLight.position.set(-700, 600, 800);
+    scene.add(fillLight);
+
+    const rimLight = new THREE.DirectionalLight(0xa855f7, 0.45);
+    rimLight.position.set(0, 900, -800);
+    scene.add(rimLight);
+
+    // Floor Grid
+    const floorGrid = new THREE.GridHelper(2400, 48, 0x334155, 0x1e293b);
+    floorGrid.position.y = -10;
+    scene.add(floorGrid);
+
+    // -------------------------------------------------------------
+    // VIBRANT INDUSTRIAL MATERIALS
+    // -------------------------------------------------------------
+    const matSilverAlum = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.22, metalness: 0.85 });
+    const matMirrorSteel = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.12, metalness: 0.95 });
+    const matRedAnodized = new THREE.MeshStandardMaterial({ color: 0xdc2626, roughness: 0.25, metalness: 0.4 });
+    const matDarkChassis = new THREE.MeshStandardMaterial({ color: 0x1a2233, roughness: 0.45, metalness: 0.5 });
+    const matGoldPlate = new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.15, metalness: 0.95 });
+    const matUVGlow = new THREE.MeshBasicMaterial({ color: 0xa855f7, transparent: true, opacity: 0.5 });
+
+    // -------------------------------------------------------------
+    // PROCEDURAL ARTWORK BUFFER & DYNAMIC CANVAS TEXTURE
+    // -------------------------------------------------------------
+    const artCanvas = document.createElement('canvas');
+    artCanvas.width = 1200;  // 600 mm at 2 px/mm
+    artCanvas.height = 1800; // 900 mm at 2 px/mm
+    const artCtx = artCanvas.getContext('2d');
+
+    // Wall Texture Canvas (Starts blank white / primed drywall)
+    const wallCanvas = document.createElement('canvas');
+    wallCanvas.width = 1200;
+    wallCanvas.height = 1800;
+    const wallCtx = wallCanvas.getContext('2d');
+    
+    function resetWallCanvas() {
+      wallCtx.fillStyle = '#f8fafc';
+      wallCtx.fillRect(0, 0, 1200, 1800);
+      // Faint background grid lines
+      wallCtx.strokeStyle = '#e2e8f0';
+      wallCtx.lineWidth = 1;
+      for (let x = 0; x < 1200; x += 100) {
+        wallCtx.beginPath(); wallCtx.moveTo(x, 0); wallCtx.lineTo(x, 1800); wallCtx.stroke();
+      }
+      for (let y = 0; y < 1800; y += 100) {
+        wallCtx.beginPath(); wallCtx.moveTo(0, y); wallCtx.lineTo(1200, y); wallCtx.stroke();
+      }
+    }
+    resetWallCanvas();
+
+    function drawArtwork(type) {
+      artCtx.clearRect(0, 0, 1200, 1800);
+      if (type === 'cmyk') {
+        // CMYK Industrial Calibration Grid
+        const colors = ['#06b6d4', '#ec4899', '#eab308', '#0f172a', '#10b981', '#f97316', '#8b5cf6'];
+        const numBands = 27;
+        const bandH = 1800 / numBands;
+        for (let i = 0; i < numBands; i++) {
+          const col = colors[i % colors.length];
+          artCtx.fillStyle = col;
+          artCtx.fillRect(50, i * bandH + 4, 1100, bandH - 8);
+          // Label
+          artCtx.fillStyle = '#ffffff';
+          artCtx.font = 'bold 22px monospace';
+          artCtx.fillText(`SWATH PASS ${i+1} &bull; EPSON I3200 600-DPI TEST`, 80, i * bandH + bandH/2 + 7);
+        }
+      } else if (type === 'mural') {
+        // Geometric Bauhaus Mural
+        const grad = artCtx.createLinearGradient(0, 0, 1200, 1800);
+        grad.addColorStop(0, '#3b82f6');
+        grad.addColorStop(0.5, '#ec4899');
+        grad.addColorStop(1, '#f59e0b');
+        artCtx.fillStyle = grad;
+        artCtx.fillRect(0, 0, 1200, 1800);
+        artCtx.fillStyle = '#ffffff';
+        artCtx.beginPath(); artCtx.arc(600, 900, 350, 0, Math.PI * 2); artCtx.fill();
+        artCtx.fillStyle = '#0f172a';
+        artCtx.fillRect(200, 600, 800, 120);
+        artCtx.fillStyle = '#06b6d4';
+        artCtx.font = 'bold 44px sans-serif';
+        artCtx.fillText('UVWALL-600 ARCHITECTURAL MURAL', 220, 675);
+      } else {
+        // Sunset Horizon
+        const grad = artCtx.createLinearGradient(0, 0, 0, 1800);
+        grad.addColorStop(0, '#0f172a');
+        grad.addColorStop(0.3, '#312e81');
+        grad.addColorStop(0.6, '#ec4899');
+        grad.addColorStop(0.85, '#f97316');
+        grad.addColorStop(1, '#facc15');
+        artCtx.fillStyle = grad;
+        artCtx.fillRect(0, 0, 1200, 1800);
+      }
+    }
+    drawArtwork('cmyk');
+
+    const wallTexture = new THREE.CanvasTexture(wallCanvas);
+    wallTexture.anisotropy = 4;
+
+    // -------------------------------------------------------------
+    // 3D PRINTER ASSEMBLY
+    // -------------------------------------------------------------
+    const machine = new THREE.Group();
+    scene.add(machine);
+
+    // 1. Frame Group
+    const frame = new THREE.Group();
+    machine.add(frame);
+
+    // 4080 Masts (Width: 40, Height: 1250, Depth: 80)
+    const mastGeom = new THREE.BoxGeometry(40, 1250, 80);
+    const mastL = new THREE.Mesh(mastGeom, matSilverAlum);
+    mastL.position.set(-325, 625, -20);
+    const mastR = new THREE.Mesh(mastGeom, matSilverAlum);
+    mastR.position.set(325, 625, -20);
+    frame.add(mastL, mastR);
+
+    // 4080 Ties (Width: 850, Height: 40, Depth: 80)
+    const tieGeom = new THREE.BoxGeometry(850, 40, 80);
+    const tieB = new THREE.Mesh(tieGeom, matSilverAlum);
+    tieB.position.set(0, 40, -20);
+    const tieT = new THREE.Mesh(tieGeom, matSilverAlum);
+    tieT.position.set(0, 1210, -20);
+    frame.add(tieB, tieT);
+
+    // 4040 Base Outriggers (Depth: 480)
+    const footGeom = new THREE.BoxGeometry(40, 40, 480);
+    const footL = new THREE.Mesh(footGeom, matSilverAlum);
+    footL.position.set(-325, 20, 40);
+    const footR = new THREE.Mesh(footGeom, matSilverAlum);
+    footR.position.set(325, 20, 40);
+    frame.add(footL, footR);
+
+    // 2. Z-Axis Rails & Ballscrew
+    const zMotion = new THREE.Group();
+    machine.add(zMotion);
+
+    const railGeom = new THREE.BoxGeometry(15, 1100, 15);
+    const zR1 = new THREE.Mesh(railGeom, matMirrorSteel);
+    zR1.position.set(-110, 600, 25);
+    const zR2 = new THREE.Mesh(railGeom, matMirrorSteel);
+    zR2.position.set(110, 600, 25);
+    zMotion.add(zR1, zR2);
+
+    const screwGeom = new THREE.CylinderGeometry(8, 8, 1150, 24);
+    const ballscrew = new THREE.Mesh(screwGeom, matMirrorSteel);
+    ballscrew.position.set(0, 600, 25);
+    zMotion.add(ballscrew);
+
+    // NEMA 23 Motor + 24V Brake
+    const zMotor = new THREE.Mesh(new THREE.BoxGeometry(57, 108, 57), matDarkChassis);
+    zMotor.position.set(0, 1250, 25);
+    zMotion.add(zMotor);
+
+    // 3. Elevating Z-Crossbeam (Moves in Y)
+    const zBeam = new THREE.Group();
+    machine.add(zBeam);
+
+    const xBeam = new THREE.Mesh(new THREE.BoxGeometry(900, 80, 40), matSilverAlum);
+    xBeam.position.set(0, 0, 50);
+    zBeam.add(xBeam);
+
+    // 4x HGH15CA Blocks
+    for (let x of [-110, 110]) {
+      for (let y of [-50, 50]) {
+        const blk = new THREE.Mesh(new THREE.BoxGeometry(34, 60, 28), matRedAnodized);
+        blk.position.set(x, y, 25);
+        zBeam.add(blk);
+      }
+    }
+
+    // Horizontal Rail HGR15
+    const xRail = new THREE.Mesh(new THREE.BoxGeometry(850, 15, 15), matMirrorSteel);
+    xRail.position.set(0, 20, 75);
+    zBeam.add(xRail);
+
+    // X Motor & Idler
+    const xMotor = new THREE.Mesh(new THREE.BoxGeometry(57, 57, 56), matDarkChassis);
+    xMotor.position.set(-400, -20, 65);
+    zBeam.add(xMotor);
+
+    // Capping Station (Parked far left: X = -350 mm)
+    const capStation = new THREE.Group();
+    capStation.position.set(-350, 0, 100);
+    const capSled = new THREE.Mesh(new THREE.BoxGeometry(70, 25, 40), matSilverAlum);
+    const capSeal = new THREE.Mesh(new THREE.BoxGeometry(64, 12, 22), matDarkChassis);
+    capSeal.position.y = 15;
+    const wiper = new THREE.Mesh(new THREE.BoxGeometry(2, 14, 18), new THREE.MeshStandardMaterial({ color: 0xf59e0b }));
+    wiper.position.set(38, 15, 0);
+    capStation.add(capSled, capSeal, wiper);
+    zBeam.add(capStation);
+
+    // 4. Scanning X-Carriage (Moves in X)
+    const xCarriage = new THREE.Group();
+    zBeam.add(xCarriage);
+
+    const carriagePlate = new THREE.Mesh(new THREE.BoxGeometry(200, 160, 8), matSilverAlum);
+    carriagePlate.position.set(0, 0, 90);
+    xCarriage.add(carriagePlate);
+
+    for (let x of [-50, 50]) {
+      const blkX = new THREE.Mesh(new THREE.BoxGeometry(60, 34, 28), matRedAnodized);
+      blkX.position.set(x, 20, 75);
+      xCarriage.add(blkX);
+    }
+
+    // Printhead Group
+    const headGroup = new THREE.Group();
+    headGroup.position.set(0, 0, 95);
+    xCarriage.add(headGroup);
+
+    const i3200Plate = new THREE.Mesh(new THREE.BoxGeometry(110, 95, 8), matSilverAlum);
+    i3200Plate.position.set(0, 0, 6);
+    headGroup.add(i3200Plate);
+
+    const headBody = new THREE.Mesh(new THREE.BoxGeometry(69.1, 57.1, 59.4), matDarkChassis);
+    headBody.position.set(0, 0, 38);
+    headGroup.add(headBody);
+
+    // Gold Nozzle Plate (Firing towards wall at +Z)
+    const nozzlePlate = new THREE.Mesh(new THREE.BoxGeometry(60, 14.5, 1.5), matGoldPlate);
+    nozzlePlate.position.set(0, 0, 68);
+    headGroup.add(nozzlePlate);
+
+    // 4x Color Dampers (CMYK)
+    const cmyk = [0x06b6d4, 0xec4899, 0xfacc15, 0x1e293b];
+    for (let i = 0; i < 4; i++) {
+      const d = new THREE.Mesh(new THREE.BoxGeometry(14, 42, 28), new THREE.MeshStandardMaterial({ color: cmyk[i] }));
+      d.position.set(-36 + (i * 24), 48, 40);
+      headGroup.add(d);
+    }
+
+    // Trailing 395nm UV LED Curing Head
+    const uvHead = new THREE.Group();
+    uvHead.position.set(85, 0, 110);
+    xCarriage.add(uvHead);
+
+    const uvShroud = new THREE.Mesh(new THREE.BoxGeometry(55, 95, 45), matDarkChassis);
+    uvHead.add(uvShroud);
+
+    const uvCone = new THREE.Mesh(new THREE.ConeGeometry(25, 40, 24), matUVGlow);
+    uvCone.rotation.x = -Math.PI / 2;
+    uvCone.position.set(0, 0, 38);
+    uvHead.add(uvCone);
+
+    // 5. Target Vertical Wall & Canvas
+    const wallGroup = new THREE.Group();
+    scene.add(wallGroup);
+
+    // Drywall Background
+    const wallMesh = new THREE.Mesh(new THREE.PlaneGeometry(1300, 1500), new THREE.MeshStandardMaterial({ color: 0xd6d3d1, roughness: 0.9 }));
+    wallMesh.position.set(0, 600, 172);
+    wallGroup.add(wallMesh);
+
+    // Active Printed Canvas (600 x 900 mm)
+    const printCanvasMat = new THREE.MeshStandardMaterial({ map: wallTexture, roughness: 0.8 });
+    const printCanvas = new THREE.Mesh(new THREE.PlaneGeometry(600, 900), printCanvasMat);
+    printCanvas.position.set(0, 600, 173);
+    wallGroup.add(printCanvas);
+
+    // Droplet Spray Particles
+    const partCount = 200;
+    const partGeom = new THREE.BufferGeometry();
+    const partPos = new Float32Array(partCount * 3);
+    for (let i = 0; i < partCount * 3; i += 3) {
+      partPos[i] = (Math.random() - 0.5) * 55;
+      partPos[i+1] = (Math.random() - 0.5) * 12;
+      partPos[i+2] = Math.random() * 15;
+    }
+    partGeom.setAttribute('position', new THREE.BufferAttribute(partPos, 3));
+    const inkParticles = new THREE.Points(partGeom, new THREE.PointsMaterial({ color: 0x06b6d4, size: 2.8 }));
+    inkParticles.position.set(0, 0, 70);
+    headGroup.add(inkParticles);
+
+    // -------------------------------------------------------------
+    // PROCESS ENGINE STATE MACHINE
+    // -------------------------------------------------------------
+    let posX = 0.0;
+    let posZ = 120.0;
+    let isPrinting = false;
+    let currentPass = 0;
+    const totalPasses = 27;
+    const swathPitch = 33.7; // mm per swath advance
+    let scanDir = 1;
+    let scanSpeed = 4.2;
+    let jetting = true;
+    let uvLamp = true;
+    let inkUsed = 0.0; // mL
+
+    // Elements
+    const rngX = document.getElementById('rng-x');
+    const rngZ = document.getElementById('rng-z');
+    const lblX = document.getElementById('lbl-x');
+    const lblZ = document.getElementById('lbl-z');
+    const btnPrint = document.getElementById('btn-print');
+    const btnIcon = document.getElementById('btn-icon');
+    const btnText = document.getElementById('btn-text');
+    const seqStepNum = document.getElementById('seq-step-num');
+    const seqStepTitle = document.getElementById('seq-step-title');
+    const progSwath = document.getElementById('prog-swath');
+    const progPct = document.getElementById('prog-pct');
+    const progInk = document.getElementById('prog-ink');
+    const progFill = document.getElementById('progress-fill');
+    const txtSysStatus = document.getElementById('txt-sys-status');
+
+    function syncUI() {
+      xCarriage.position.x = posX;
+      zBeam.position.y = posZ;
+      lblX.innerText = posX.toFixed(1) + ' mm';
+      lblZ.innerText = posZ.toFixed(1) + ' mm';
+      rngX.value = posX;
+      rngZ.value = posZ;
+    }
+
+    rngX.oninput = (e) => { posX = parseFloat(e.target.value); syncUI(); };
+    rngZ.oninput = (e) => { posZ = parseFloat(e.target.value); syncUI(); };
+
+    // Function to Paint a Pixel Strip onto the Wall Canvas
+    function paintSwathStrip(xPos, zPos) {
+      if (!jetting) return;
+
+      // Convert machine (xPos: -300..+300 mm, zPos: 100..1000 mm) to canvas (0..1200 px, 0..1800 px)
+      // Note: In 3D Three.js, Canvas bottom is at Z=150, top at Z=1050 (900 mm span)
+      const cx = (xPos + 300) * 2; // 0 to 1200
+      const cy = 1800 - ((zPos - 150) * 2); // Invert Y for canvas coordinate system
+
+      if (cx >= 0 && cx <= 1200 && cy >= 0 && cy <= 1800) {
+        const swathH = swathPitch * 2; // ~67 px height
+        const stripW = 12; // Width of one scan slice
+
+        // Copy source artwork strip into the wall texture!
+        artCtx.save();
+        wallCtx.drawImage(
+          artCanvas,
+          Math.max(0, cx - stripW/2), Math.max(0, cy - swathH/2), stripW, swathH,
+          Math.max(0, cx - stripW/2), Math.max(0, cy - swathH/2), stripW, swathH
+        );
+        artCtx.restore();
+
+        wallTexture.needsUpdate = true;
+        inkUsed += 0.003;
+        progInk.innerText = inkUsed.toFixed(1) + ' mL';
+      }
+    }
+
+    // Toggle Print Engine
+    btnPrint.onclick = () => {
+      isPrinting = !isPrinting;
+      btnPrint.classList.toggle('running', isPrinting);
+      btnIcon.innerText = isPrinting ? '⏸' : '▶';
+      btnText.innerText = isPrinting ? 'PAUSE PRINTING PROCESS' : 'RESUME PRINTING PROCESS';
+      txtSysStatus.innerText = isPrinting ? 'PRINTING SWATH IN PROGRESS' : 'PROCESS PAUSED';
+      txtSysStatus.style.color = isPrinting ? 'var(--accent-green)' : 'var(--accent-amber)';
+    };
+
+    // Step 1 Single Swath
+    document.getElementById('btn-step').onclick = () => {
+      advanceOneSwath();
+    };
+
+    function advanceOneSwath() {
+      currentPass++;
+      if (currentPass > totalPasses) currentPass = 1;
+      posZ = 150 + (currentPass - 1) * swathPitch;
+      syncUI();
+
+      // Paint full pass instantly in step mode
+      const yCanvas = 1800 - ((posZ - 150) * 2);
+      const swathH = swathPitch * 2;
+      wallCtx.drawImage(artCanvas, 0, yCanvas - swathH/2, 1200, swathH, 0, yCanvas - swathH/2, 1200, swathH);
+      wallTexture.needsUpdate = true;
+
+      const pct = (currentPass / totalPasses) * 100;
+      progSwath.innerText = `PASS ${String(currentPass).padStart(2, '0')} / ${totalPasses}`;
+      progPct.innerText = pct.toFixed(1) + '%';
+      progFill.style.width = pct + '%';
+    }
+
+    // Purge & Wipe Sequence
+    document.getElementById('btn-purge').onclick = () => {
+      seqStepNum.innerText = 'PURGE';
+      seqStepTitle.innerText = 'MAINTENANCE &bull; NOZZLE VACUUM PURGE & WIPER CLEAN';
+      posX = -350; // Park over capping station
+      syncUI();
+      setTimeout(() => {
+        seqStepTitle.innerText = 'WIPING POLYURETHANE BLADE...';
+        setTimeout(() => {
+          posX = 0;
+          syncUI();
+          seqStepNum.innerText = 'READY';
+          seqStepTitle.innerText = 'PURGE COMPLETE &bull; MENISCUS STABILIZED (-1.50 kPa)';
+        }, 1200);
+      }, 1000);
+    };
+
+    // Clear Wall
+    document.getElementById('btn-clear').onclick = () => {
+      resetWallCanvas();
+      wallTexture.needsUpdate = true;
+      currentPass = 0;
+      inkUsed = 0.0;
+      progSwath.innerText = 'PASS 00 / 27';
+      progPct.innerText = '0.0%';
+      progInk.innerText = '0.0 mL';
+      progFill.style.width = '0%';
+    };
+
+    // Artwork Selector
+    window.changeArtwork = function(val) {
+      drawArtwork(val);
+      resetWallCanvas();
+      wallTexture.needsUpdate = true;
+    };
+
+    // Tool Toggles
+    document.getElementById('btn-jet').onclick = (e) => {
+      jetting = !jetting;
+      e.target.classList.toggle('active', jetting);
+      e.target.innerText = jetting ? 'JETTING: ON' : 'JETTING: OFF';
+      inkParticles.visible = jetting;
+    };
+
+    document.getElementById('btn-uv').onclick = (e) => {
+      uvLamp = !uvLamp;
+      e.target.classList.toggle('active', uvLamp);
+      e.target.innerText = uvLamp ? 'UV LAMP: ON' : 'UV LAMP: OFF';
+      uvCone.visible = uvLamp;
+    };
+
+    document.getElementById('btn-wall').onclick = (e) => {
+      wallGroup.visible = !wallGroup.visible;
+      e.target.classList.toggle('active', wallGroup.visible);
+      e.target.innerText = wallGroup.visible ? 'WALL: ON' : 'WALL: OFF';
+    };
+
+    // Camera Switcher
+    window.switchView = function(v) {
+      document.querySelectorAll('.btn-view').forEach(b => b.classList.remove('active'));
+      const btn = document.getElementById('btn-view-' + v);
+      if (btn) btn.classList.add('active');
+
+      if (v === 'iso') {
+        camera.position.set(550, 750, 1550);
+        controls.target.set(0, 560, 0);
+      } else if (v === 'front') {
+        camera.position.set(0, 600, 1800);
+        controls.target.set(0, 580, 0);
+      } else if (v === 'close') {
+        camera.position.set(posX + 90, posZ + 40, 310);
+        controls.target.set(posX, posZ, 95);
+      } else if (v === 'side') {
+        camera.position.set(1600, 600, 60);
+        controls.target.set(0, 560, 0);
+      }
+      controls.update();
+    };
+
+    // Drawer Handling
+    window.openDrawer = function() { document.getElementById('blueprints-drawer').classList.add('open'); };
+    window.closeDrawer = function() { document.getElementById('blueprints-drawer').classList.remove('open'); };
+    window.changeDrawing = function(url) { document.getElementById('dwg-image').src = url; };
+    window.openDrawingTab = function() {
+      const url = document.getElementById('dwg-dropdown').value;
+      window.open(url, '_blank');
+    };
+
+    // -------------------------------------------------------------
+    // MAIN REAL-TIME SIMULATION & ANIMATION LOOP
+    // -------------------------------------------------------------
+    let clock = 0;
+    function animate() {
+      requestAnimationFrame(animate);
+      clock += 0.05;
+
+      // Real Process Execution
+      if (isPrinting) {
+        posX += scanDir * scanSpeed;
+
+        // Active Jetting & Curing Zone: -300 mm to +300 mm
+        if (posX >= -300 && posX <= 300) {
+          paintSwathStrip(posX, posZ);
+          seqStepNum.innerText = `PASS ${currentPass+1}`;
+          seqStepTitle.innerText = `SCANNING &bull; JETTING 3,200 NOZZLES &bull; 395nm UV CURING`;
+        } else {
+          seqStepTitle.innerText = `OVERTRAVEL DECELERATION & TURNAROUND RAMP`;
+        }
+
+        // Swath Advance Trigger at Turnarounds
+        if (posX >= 310) {
+          scanDir = -1;
+          currentPass++;
+          posZ += swathPitch;
+          if (posZ > 950) {
+            posZ = 120;
+            currentPass = 0;
+          }
+          const pct = Math.min(100, (currentPass / totalPasses) * 100);
+          progSwath.innerText = `PASS ${String(currentPass).padStart(2, '0')} / ${totalPasses}`;
+          progPct.innerText = pct.toFixed(1) + '%';
+          progFill.style.width = pct + '%';
+        } else if (posX <= -310) {
+          scanDir = 1;
+          currentPass++;
+          posZ += swathPitch;
+          if (posZ > 950) {
+            posZ = 120;
+            currentPass = 0;
+          }
+          const pct = Math.min(100, (currentPass / totalPasses) * 100);
+          progSwath.innerText = `PASS ${String(currentPass).padStart(2, '0')} / ${totalPasses}`;
+          progPct.innerText = pct.toFixed(1) + '%';
+          progFill.style.width = pct + '%';
+        }
+        syncUI();
+      }
+
+      // Ink Droplet Particle Streaming
+      if (jetting && (isPrinting || Math.abs(posX) <= 300)) {
+        const pArr = partGeom.attributes.position.array;
+        for (let i = 2; i < pArr.length; i += 3) {
+          pArr[i] += 1.4;
+          if (pArr[i] > 18) pArr[i] = 0;
+        }
+        partGeom.attributes.position.needsUpdate = true;
+      }
+
+      // UV Curing Light Breathing Glow
+      if (uvLamp) {
+        uvCone.material.opacity = 0.4 + Math.sin(clock * 6) * 0.12;
+      }
+
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    window.addEventListener('resize', () => {
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    });
+
+    syncUI();
+    controls.update();
+    animate();
+  </script>
+</body>
+</html>

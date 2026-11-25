@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PROJECT W.A.L.L. — CAM Image Processor & Motion Planner</title>
+  <!-- Industrial Neutral Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="processor.css?v=8.0">
+  <style>
+    .cam-layout {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 16px;
+      padding: 16px;
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+    }
+    .toolpath-preview-card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      padding: 14px;
+      min-height: 380px;
+    }
+    .toolpath-canvas-wrap {
+      flex: 1;
+      background-color: #07090c;
+      border: 1px solid var(--border-medium);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      min-height: 300px;
+    }
+    #cam-preview-canvas {
+      max-width: 100%;
+      max-height: 100%;
+      background-color: #f8fafc;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    }
+    .action-dock {
+      display: grid;
+      grid-template-columns: 1fr 1.6fr 1fr;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .btn-dock-nav {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-medium);
+      color: var(--text-main);
+      padding: 12px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+    .btn-dock-nav:hover {
+      background-color: var(--bg-elevated);
+      border-color: var(--accent-amber);
+      color: var(--accent-amber);
+    }
+    .btn-lock-aspect {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-medium);
+      color: var(--text-dim);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .btn-lock-aspect.active {
+      border-color: var(--accent-amber);
+      color: var(--accent-amber);
+      background: rgba(245, 158, 11, 0.08);
+    }
+    .scale-presets-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+    .btn-scale-preset {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      padding: 5px 3px;
+      border-radius: 4px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s ease;
+    }
+    .btn-scale-preset:hover {
+      border-color: var(--border-highlight);
+      color: var(--text-main);
+    }
+    .btn-scale-preset.active {
+      background: rgba(245, 158, 11, 0.12);
+      border-color: var(--accent-amber);
+      color: var(--accent-amber);
+    }
+    .dim-hint {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-dim);
+      margin-left: 4px;
+    }
+    .size-status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 4px;
+      padding: 6px 10px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-main);
+      margin-top: 8px;
+    }
+    .dim-sep {
+      color: var(--border-highlight);
+    }
+  </style>
+</head>
+<body>
+  <div class="proc-shell">
+    
+    <!-- Top Engineering Navigation Bar -->
+    <header class="proc-navbar">
+      <div class="proc-brand">
+        <div class="brand-symbol"><div class="symbol-dot"></div></div>
+        <div>
+          <div class="brand-title">PROJECT W.A.L.L.</div>
+          <div class="brand-subtitle">CAM Image Processor &bull; Motion Classification Studio</div>
+        </div>
+      </div>
+
+      <!-- Navigation Links Across Suite -->
+      <nav class="proc-nav-links">
+        <a href="index.html" class="nav-tab-btn" title="Live 3D Digital Twin Cockpit">Cockpit</a>
+        <a href="processor.html" class="nav-tab-btn active" title="CAM Image Processor">Processor</a>
+        <a href="recipe.html" class="nav-tab-btn" title="Paint & Ink Recipe Formulation (BOM)">Paint & BOM</a>
+        <a href="logs.html" class="nav-tab-btn" title="Flight Recorder & Execution Logs">Flight Logs</a>
+        <a href="blueprint.html" class="nav-tab-btn" title="8-Sheet Technical CAD Blueprints">CAD Blueprints</a>
+        <a href="actuator.html" class="nav-tab-btn" style="border-color: #f59e0b; color: #f59e0b;" title="HYPER-ACTUATOR Mk-1 Innovation Studio">HYPER-ACTUATOR</a>
+      </nav>
+
+      <!-- System Status & Controls -->
+      <div class="proc-nav-status">
+        <div class="status-chip">
+          <span class="live-dot" id="live-indicator"></span>
+          <span class="chip-text" id="ws-status-text">CONNECTING</span>
+        </div>
+        <div class="state-badge" id="supervisor-badge">READY</div>
+        <div class="time-display" id="sim-clock">T+ 0.00s</div>
+        <button class="btn-ghost" id="btn-proc-reset" title="Reset system state">Reset</button>
+        <button class="btn-danger" id="btn-proc-estop">EMERGENCY STOP</button>
+      </div>
+    </header>
+
+    <!-- Main Workspace: Uncluttered 2-Column CAM Studio -->
+    <main class="cam-layout">
+      
+      <!-- 1. LEFT COLUMN: Artwork Ingestion, Presets & CAM Parameters -->
+      <aside class="proc-col" style="overflow-y: visible;">
+        <div class="proc-card">
+          <div class="card-header">
+            <h3>1. Artwork Ingestion</h3>
+            <span class="badge-subtle">Image Input</span>
+          </div>
+
+          <!-- Drag and Drop Dropzone -->
+          <div class="upload-dropzone" id="proc-dropzone">
+            <div id="drop-default-view">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="upload-icon">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+              <div class="drop-primary">Drop Any Image Here</div>
+              <div class="drop-secondary">PNG, JPG, WebP, GIF, BMP, TIFF (Any Size / Color)</div>
+              <label class="btn-file-browse">
+                Browse File
+                <input type="file" id="proc-file-input" accept="image/*" style="display: none;">
+              </label>
+            </div>
+            <div id="drop-preview-view" style="display: none; align-items: center; gap: 12px; width: 100%;">
+              <img id="proc-thumb-img" style="width: 48px; height: 48px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border-medium);" alt="Thumbnail">
+              <div style="flex: 1; min-width: 0; text-align: left;">
+                <div id="proc-file-name" style="font-weight: 700; font-size: 12px; color: var(--text-main); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">filename.png</div>
+                <div id="proc-file-info" style="font-size: 11px; color: var(--text-dim); font-family: var(--font-mono);">0 &times; 0 px</div>
+              </div>
+              <button type="button" class="btn-ghost" id="btn-clear-file" style="padding: 4px 8px; font-size: 11px;">Change</button>
+            </div>
+          </div>
+
+          <!-- Quick Test Presets -->
+          <div class="presets-section">
+            <div class="section-label">Or Select Engineering Preset:</div>
+            <div class="preset-buttons">
+              <button class="btn-preset active" data-preset="preset_graphic_logo">
+                <div class="preset-name">Industrial Hazard Emblem</div>
+                <div class="preset-sub">Bold Line Graphic &bull; Tests Module B (Marker)</div>
+              </button>
+              <button class="btn-preset" data-preset="preset_gradient_art">
+                <div class="preset-name">Continuous Gradient Field</div>
+                <div class="preset-sub">Multi-tonal Tone &bull; Tests Module A (Piezo)</div>
+              </button>
+              <button class="btn-preset" data-preset="preset_line_schematic">
+                <div class="preset-name">Optical Alignment Grid</div>
+                <div class="preset-sub">Precision Vector &bull; Kinematics Check</div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Physical Print Parameters Form with Aspect-Ratio Lock & Scale Presets -->
+          <div class="params-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <div class="section-label" style="margin-bottom: 0;">Print Dimensions & Sizing:</div>
+              <button type="button" class="btn-lock-aspect active" id="btn-lock-aspect" title="Toggle Aspect Ratio Lock">
+                <svg id="lock-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <span id="lock-label">Locked</span>
+              </button>
+            </div>
+
+            <!-- Quick Scale Presets (% of Printable Workspace) -->
+            <div class="scale-presets-row">
+              <button type="button" class="btn-scale-preset" data-scale="0.25">25% (Small)</button>
+              <button type="button" class="btn-scale-preset" data-scale="0.50">50% (Medium)</button>
+              <button type="button" class="btn-scale-preset" data-scale="0.75">75% (Large)</button>
+              <button type="button" class="btn-scale-preset active" data-scale="1.00">100% (Max Safe)</button>
+            </div>
+
+            <div class="param-row">
+              <div class="param-field">
+                <label>Width (mm) <span class="dim-hint" id="hint-w-in">11.8 in</span></label>
+                <input type="number" id="inp-print-w" value="300" min="50" max="540" step="5">
+              </div>
+              <div class="param-field">
+                <label>Height (mm) <span class="dim-hint" id="hint-h-in">9.8 in</span></label>
+                <input type="number" id="inp-print-h" value="250" min="50" max="380" step="5">
+              </div>
+            </div>
+
+            <!-- Live Dimension & Envelope Gauge -->
+            <div class="size-status-bar">
+              <span id="status-dim-mm">300 &times; 250 mm</span>
+              <span class="dim-sep">&bull;</span>
+              <span id="status-envelope-pct">36% of wall</span>
+              <span class="dim-sep">&bull;</span>
+              <span id="status-aspect-ratio" style="color: var(--accent-amber);">1.20:1</span>
+            </div>
+
+            <div class="param-row" style="margin-top: 10px;">
+              <div class="param-field">
+                <label>Print Clarity / Pitch</label>
+                <select id="inp-row-pitch">
+                  <option value="0.8">Photo HD (0.8 mm - Ultra Fine)</option>
+                  <option value="1.5" selected>High Clarity (1.5 mm - Crisp)</option>
+                  <option value="2.5">Standard (2.5 mm)</option>
+                  <option value="4.0">Draft / Rapid (4.0 mm)</option>
+                </select>
+              </div>
+              <div class="param-field">
+                <label>Actuator Mode</label>
+                <select id="inp-actuator-override">
+                  <option value="auto">Auto-Classify (Recommended)</option>
+                  <option value="inkjet">Force Module A (Piezo)</option>
+                  <option value="paint">Force Module B (Marker)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Process Trigger Button -->
+          <button class="btn-primary" id="btn-process-artwork" style="width: 100%; margin-top: 14px;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            Process & Classify Artwork
+          </button>
+        </div>
+      </aside>
+
+      <!-- 2. RIGHT COLUMN: Classification, Motion Plan & Interactive Toolpath Canvas -->
+      <section style="display: flex; flex-direction: column; gap: 14px;">
+        
+        <!-- Actuator Classification Card -->
+        <div class="proc-card">
+          <div class="card-header">
+            <h3>2. Actuator Classification</h3>
+            <span class="badge-amber" id="badge-rec-module">MODULE B (MARKER)</span>
+          </div>
+
+          <div class="classification-hero" id="classification-hero">
+            <div class="hero-module-title" id="class-module-title">Module B: Spring-Compliant Paint Marker</div>
+            <div class="hero-module-desc" id="class-module-desc">
+              High edge contrast with bold outlines and flat fills detected. Spring compliance maintains constant 1.2N normal force for uniform stroke width.
+            </div>
+            <div class="spec-pills">
+              <div class="spec-pill"><span class="lbl">DELIVERY</span><b class="val" id="spec-delivery">6mm Chisel Nib</b></div>
+              <div class="spec-pill"><span class="lbl">SPRING</span><b class="val" id="spec-spring">1.2N Compliance</b></div>
+              <div class="spec-pill"><span class="lbl">STANDOFF</span><b class="val" id="spec-standoff">Contact Surface</b></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4-Cable Motion Plan Summary -->
+        <div class="proc-card">
+          <div class="card-header">
+            <h3>3. 4-Cable Motion Plan Summary</h3>
+            <span class="badge-green" id="badge-kin-status">KINEMATICALLY FEASIBLE</span>
+          </div>
+
+          <div class="motion-stats-grid" style="margin-bottom: 0;">
+            <div class="m-stat"><span class="lbl">Total Passes</span><b class="val" id="m-passes">84</b></div>
+            <div class="m-stat"><span class="lbl">Waypoints</span><b class="val" id="m-waypoints">168</b></div>
+            <div class="m-stat"><span class="lbl">Total Path</span><b class="val" id="m-distance">25.4 m</b></div>
+            <div class="m-stat"><span class="lbl">Est. Duration</span><b class="val" id="m-duration">38.2 s</b></div>
+            <div class="m-stat"><span class="lbl">Min Tension</span><b class="val" id="m-t-min">9.8 N</b></div>
+            <div class="m-stat"><span class="lbl">Max Tension</span><b class="val" id="m-t-max">26.1 N</b></div>
+          </div>
+        </div>
+
+        <!-- Toolpath & Progressive Preview Canvas -->
+        <div class="toolpath-preview-card" style="flex: 1;">
+          <div class="card-header">
+            <h3>4. CAM Toolpath & Progressive Surface Canvas</h3>
+            <span class="badge-subtle" id="lbl-canvas-dims">300 x 250 mm</span>
+          </div>
+
+          <div class="toolpath-canvas-wrap">
+            <canvas id="cam-preview-canvas" width="960" height="720"></canvas>
+          </div>
+
+          <!-- Bottom Action Dock -->
+          <div class="action-dock">
+            <a href="recipe.html" class="btn-dock-nav" title="Inspect Full Paint & Ink Recipe">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+              <span>View Paint & BOM &rarr;</span>
+            </a>
+
+            <button class="btn-execute-print" id="btn-execute-print-job">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              <span>SEND TO CDPR & START SURFACE PRINT</span>
+            </button>
+
+            <a href="logs.html" class="btn-dock-nav" title="Open Real-time Flight Logs Console">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 14 15 20 9"/></svg>
+              <span>View Flight Logs &rarr;</span>
+            </a>
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Application Logic -->
+  <script type="module">
+    const host = window.location.hostname || 'localhost';
+    const apiBase = `http://${host}:8000/api`;
+    const wsUrl = `ws://${host}:8000/ws`;
+
+    let activePreset = 'preset_graphic_logo';
+    let selectedFile = null;
+    let currentReport = null;
+
+    // Aspect Ratio & Sizing Controls (Module Scope)
+    let isAspectLocked = true;
+    let currentAspectRatio = 1.20; // W / H
+    const maxW = 540;
+    const maxH = 380;
+    const totalWallArea = maxW * maxH;
+
+    function updateDimDisplay(w, h) {
+      const hintW = document.getElementById('hint-w-in');
+      const hintH = document.getElementById('hint-h-in');
+      const dimMm = document.getElementById('status-dim-mm');
+      const envPct = document.getElementById('status-envelope-pct');
+      const aspRat = document.getElementById('status-aspect-ratio');
+
+      if (hintW) hintW.textContent = `${(w / 25.4).toFixed(1)} in`;
+      if (hintH) hintH.textContent = `${(h / 25.4).toFixed(1)} in`;
+      if (dimMm) dimMm.textContent = `${Math.round(w)} \u00D7 ${Math.round(h)} mm`;
+      if (envPct) {
+        const pct = Math.round((w * h / totalWallArea) * 100);
+        envPct.textContent = `${pct}% of wall`;
+      }
+      if (aspRat && currentAspectRatio) aspRat.textContent = `${currentAspectRatio.toFixed(2)}:1`;
+    }
+
+    const canvas = document.getElementById('cam-preview-canvas');
+    const ctx = canvas.getContext('2d');
+
+    function initListeners() {
+      // Preset Selection
+      const buttons = document.querySelectorAll('.btn-preset');
+      buttons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          buttons.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          activePreset = btn.getAttribute('data-preset');
+          selectedFile = null;
+          analyzeArtwork();
+        });
+      });
+
+      // Dropzone & File Input
+      const dropzone = document.getElementById('proc-dropzone');
+      const fileInp = document.getElementById('proc-file-input');
+
+      const showFilePreview = (file) => {
+        const defaultView = document.getElementById('drop-default-view');
+        const previewView = document.getElementById('drop-preview-view');
+        const thumbImg = document.getElementById('proc-thumb-img');
+        const fileName = document.getElementById('proc-file-name');
+        const fileInfo = document.getElementById('proc-file-info');
+
+        if (defaultView) defaultView.style.display = 'none';
+        if (previewView) previewView.style.display = 'flex';
+        if (fileName) fileName.textContent = file.name;
+        if (fileInfo) fileInfo.textContent = `${(file.size / 1024).toFixed(1)} KB \u2022 Custom Artwork`;
+
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          if (thumbImg) thumbImg.src = ev.target.result;
+
+          // Auto-compute intrinsic aspect ratio and scale dimensions cleanly
+          const img = new Image();
+          img.onload = () => {
+            if (img.naturalWidth && img.naturalHeight) {
+              currentAspectRatio = img.naturalWidth / img.naturalHeight;
+              const inpW = document.getElementById('inp-print-w');
+              const inpH = document.getElementById('inp-print-h');
+              if (inpW && inpH) {
+                let w = parseFloat(inpW.value) || 300;
+                let h = Math.round(w / currentAspectRatio);
+                if (h > maxH) {
+                  h = maxH;
+                  w = Math.round(h * currentAspectRatio);
+                }
+                if (w > maxW) {
+                  w = maxW;
+                  h = Math.round(w / currentAspectRatio);
+                }
+                inpW.value = w;
+                inpH.value = h;
+                updateDimDisplay(w, h);
+              }
+            }
+          };
+          img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+      };
+
+      const clearCustomFile = () => {
+        selectedFile = null;
+        const defaultView = document.getElementById('drop-default-view');
+        const previewView = document.getElementById('drop-preview-view');
+        if (defaultView) defaultView.style.display = 'block';
+        if (previewView) previewView.style.display = 'none';
+        activePreset = 'preset_graphic_logo';
+        buttons.forEach(b => {
+          if (b.getAttribute('data-preset') === activePreset) b.classList.add('active');
+          else b.classList.remove('active');
+        });
+        analyzeArtwork();
+      };
+
+      document.getElementById('btn-clear-file')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        clearCustomFile();
+      });
+
+      dropzone?.addEventListener('click', (e) => {
+        if (e.target.closest('#btn-clear-file') || e.target.closest('#proc-file-input')) return;
+        if (!e.target.closest('.btn-file-browse')) {
+          fileInp?.click();
+        }
+      });
+
+      dropzone?.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
+      dropzone?.addEventListener('dragleave', () => { dropzone.classList.remove('dragover'); });
+      dropzone?.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('dragover');
+        if (e.dataTransfer.files?.length) {
+          selectedFile = e.dataTransfer.files[0];
+          activePreset = null;
+          buttons.forEach(b => b.classList.remove('active'));
+          showFilePreview(selectedFile);
+          analyzeArtwork();
+        }
+      });
+
+      fileInp?.addEventListener('change', (e) => {
+        if (e.target.files?.length) {
+          selectedFile = e.target.files[0];
+          activePreset = null;
+          buttons.forEach(b => b.classList.remove('active'));
+          showFilePreview(selectedFile);
+          analyzeArtwork();
+        }
+      });
+
+      // Initialize dimensions display
+      updateDimDisplay(300, 250);
+
+      const inpW = document.getElementById('inp-print-w');
+      const inpH = document.getElementById('inp-print-h');
+      const btnLock = document.getElementById('btn-lock-aspect');
+      const lockLabel = document.getElementById('lock-label');
+
+      btnLock?.addEventListener('click', () => {
+        isAspectLocked = !isAspectLocked;
+        btnLock.classList.toggle('active', isAspectLocked);
+        if (lockLabel) lockLabel.textContent = isAspectLocked ? 'Locked' : 'Unlocked';
+      });
+
+      let debounceTimer = null;
+      const triggerAnalyzeDebounced = () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => analyzeArtwork(), 300);
+      };
+
+      inpW?.addEventListener('input', () => {
+        let w = parseFloat(inpW.value) || 300;
+        w = Math.min(Math.max(w, 50), maxW);
+        if (isAspectLocked) {
+          let h = Math.round(w / currentAspectRatio);
+          if (h > maxH) {
+            h = maxH;
+            w = Math.round(h * currentAspectRatio);
+            inpW.value = w;
+          }
+          inpH.value = h;
+        }
+        updateDimDisplay(parseFloat(inpW.value), parseFloat(inpH.value));
+        triggerAnalyzeDebounced();
+      });
+
+      inpH?.addEventListener('input', () => {
+        let h = parseFloat(inpH.value) || 250;
+        h = Math.min(Math.max(h, 50), maxH);
+        if (isAspectLocked) {
+          let w = Math.round(h * currentAspectRatio);
+          if (w > maxW) {
+            w = maxW;
+            h = Math.round(w / currentAspectRatio);
+            inpH.value = h;
+          }
+          inpW.value = w;
+        }
+        updateDimDisplay(parseFloat(inpW.value), parseFloat(inpH.value));
+        triggerAnalyzeDebounced();
+      });
+
+      // Quick Scale Preset Buttons (25%, 50%, 75%, 100%)
+      const scaleButtons = document.querySelectorAll('.btn-scale-preset');
+      scaleButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          scaleButtons.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          const scale = parseFloat(btn.getAttribute('data-scale') || 1.0);
+
+          let targetW = maxW * scale;
+          let targetH = targetW / currentAspectRatio;
+          if (targetH > maxH * scale) {
+            targetH = maxH * scale;
+            targetW = targetH * currentAspectRatio;
+          }
+          inpW.value = Math.round(targetW);
+          inpH.value = Math.round(targetH);
+          updateDimDisplay(Math.round(targetW), Math.round(targetH));
+          analyzeArtwork();
+        });
+      });
+
+      // Scan Pitch change
+      document.getElementById('inp-row-pitch')?.addEventListener('change', () => analyzeArtwork());
+      document.getElementById('inp-actuator-override')?.addEventListener('change', () => analyzeArtwork());
+
+      // Process Button
+      document.getElementById('btn-process-artwork')?.addEventListener('click', () => analyzeArtwork());
+
+      // Execute Button
+      document.getElementById('btn-execute-print-job')?.addEventListener('click', async () => {
+        try {
+          const res = await fetch(`${apiBase}/processor/execute`, { method: 'POST' });
+          if (res.ok) {
+            window.location.href = 'index.html'; // Direct to live 3D twin for watching the execution!
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      });
+
+      // E-Stop & Reset
+      document.getElementById('btn-proc-reset')?.addEventListener('click', () => fetch(`${apiBase}/control/reset`, { method: 'POST' }));
+      document.getElementById('btn-proc-estop')?.addEventListener('click', () => fetch(`${apiBase}/control/estop`, { method: 'POST' }));
+    }
+
+    async function analyzeArtwork() {
+      const btn = document.getElementById('btn-process-artwork');
+      const originalText = btn ? btn.innerHTML : 'Process & Classify Artwork';
+      if (btn) {
+        btn.disabled = true;
+        btn.style.opacity = '0.7';
+        btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spin-icon"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Processing Artwork...`;
+      }
+
+      const widthMm = parseFloat(document.getElementById('inp-print-w')?.value || 300);
+      const heightMm = parseFloat(document.getElementById('inp-print-h')?.value || 250);
+      const pitchMm = parseFloat(document.getElementById('inp-row-pitch')?.value || 1.5);
+      const actuatorMode = document.getElementById('inp-actuator-override')?.value || 'auto';
+
+      const formData = new FormData();
+      formData.append('target_width_mm', widthMm);
+      formData.append('target_height_mm', heightMm);
+      formData.append('row_pitch_mm', pitchMm);
+      if (actuatorMode !== 'auto') formData.append('actuator_override', actuatorMode);
+
+      if (selectedFile) formData.append('file', selectedFile);
+      else if (activePreset) formData.append('preset_id', activePreset);
+
+      try {
+        const res = await fetch(`${apiBase}/processor/analyze`, { method: 'POST', body: formData });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.report) {
+            currentReport = data.report;
+            renderReport(data.report);
+          }
+        } else {
+          let errMsg = 'Server error';
+          try {
+            const err = await res.json();
+            errMsg = err.detail || JSON.stringify(err);
+          } catch (_) {}
+          alert('Error analyzing image: ' + errMsg);
+        }
+      } catch (e) {
+        console.error('CAM Artwork Analysis Error:', e);
+        if (e instanceof TypeError && (e.message.toLowerCase().includes('fetch') || e.message.toLowerCase().includes('network'))) {
+          alert('Network connection error: Unable to connect to backend on ' + apiBase);
+        } else {
+          console.error(e.stack || e);
+        }
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.style.opacity = '1.0';
+          btn.innerHTML = originalText;
+        }
+      }
+    }
+
+    function renderReport(report) {
+      const rec = report.paint_recipe;
+      const motion = report.motion_plan;
+
+      // Classification
+      const badge = document.getElementById('badge-rec-module');
+      if (badge) {
+        badge.textContent = rec.recommended_actuator === 'paint' ? 'MODULE B (PAINT MARKER)' : 'MODULE A (PIEZO INKJET)';
+        badge.className = rec.recommended_actuator === 'paint' ? 'badge-amber' : 'badge-green';
+      }
+      document.getElementById('class-module-title').textContent = rec.actuator_display_name;
+      document.getElementById('class-module-desc').textContent = rec.rationale;
+
+      if (rec.recommended_actuator === 'paint') {
+        document.getElementById('spec-delivery').textContent = '6mm Chisel Nib';
+        document.getElementById('spec-spring').textContent = '1.2N Compliance';
+        document.getElementById('spec-standoff').textContent = 'Contact (0.0mm)';
+      } else {
+        document.getElementById('spec-delivery').textContent = '48-Nozzle Matrix';
+        document.getElementById('spec-spring').textContent = '14 pL Droplets';
+        document.getElementById('spec-standoff').textContent = 'Non-Contact (2.0mm)';
+      }
+
+      // Motion Plan
+      document.getElementById('m-passes').textContent = Math.round(report.target_size_mm[1] / motion.row_pitch_mm);
+      document.getElementById('m-waypoints').textContent = motion.total_waypoints;
+      document.getElementById('m-distance').textContent = `${motion.total_distance_m} m`;
+      document.getElementById('m-duration').textContent = `${motion.estimated_time_s} s`;
+      document.getElementById('m-t-min').textContent = `${motion.tension_range_n[0]} N`;
+      document.getElementById('m-t-max').textContent = `${motion.tension_range_n[1]} N`;
+
+      // Update Aspect Ratio and Size Gauges
+      if (report.aspect_ratio) {
+        currentAspectRatio = report.aspect_ratio;
+        updateDimDisplay(report.target_size_mm[0], report.target_size_mm[1]);
+      }
+
+      // Draw Toolpath Canvas
+      drawToolpath(report);
+    }
+
+    function drawToolpath(report) {
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const targetW = report.target_size_mm[0];
+      const targetH = report.target_size_mm[1];
+      const originX = report.surface_bounds_mm.origin_x;
+      const originY = report.surface_bounds_mm.origin_y;
+
+      // Scale to canvas
+      const scaleX = (canvas.width - 40) / 800; // 800mm wall
+      const scaleY = (canvas.height - 40) / 600; // 600mm wall
+
+      const toX = (x) => 20 + x * scaleX;
+      const toY = (y) => canvas.height - (20 + y * scaleY);
+
+      const drawOverlays = () => {
+        // 1. Draw Surface Perimeter
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(toX(0), toY(600), 800 * scaleX, 600 * scaleY);
+
+        // 2. Draw Printable Area
+        ctx.strokeStyle = '#f59e0b';
+        ctx.fillStyle = 'rgba(245, 158, 11, 0.08)';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(toX(originX), toY(originY + targetH), targetW * scaleX, targetH * scaleY);
+
+        // 3. Draw Serpentine Raster Passes
+        const rows = Math.round(targetH / report.motion_plan.row_pitch_mm);
+        ctx.strokeStyle = 'rgba(245, 158, 11, 0.55)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        for (let r = 0; r < rows; r += 2) {
+          const y = originY + (r * report.motion_plan.row_pitch_mm);
+          ctx.moveTo(toX(originX), toY(y));
+          ctx.lineTo(toX(originX + targetW), toY(y));
+        }
+        ctx.stroke();
+
+        // 4. Draw Center Crosshair
+        ctx.strokeStyle = '#f59e0b';
+        ctx.beginPath();
+        ctx.arc(toX(400), toY(300), 6, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '10px monospace';
+        ctx.fillText(`Print Area: ${targetW} x ${targetH} mm | Ratio: ${report.aspect_ratio || '1.0'}`, toX(originX), toY(originY) + 14);
+      };
+
+      // 1. Draw overlays synchronously first (ensures canvas is never blank)
+      drawOverlays();
+
+      // 2. If thumbnail is available, render the actual image inside the bounding box and redraw overlays
+      if (report.thumbnail_base64) {
+        const img = new Image();
+        img.onload = () => {
+          ctx.fillStyle = '#0f172a';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.save();
+          ctx.globalAlpha = 0.85;
+          ctx.drawImage(img, toX(originX), toY(originY + targetH), targetW * scaleX, targetH * scaleY);
+          ctx.restore();
+          drawOverlays();
+        };
+        img.onerror = () => {
+          drawOverlays();
+        };
+        img.src = report.thumbnail_base64;
+      }
+    }
+
+    function initWs() {
+      const dot = document.getElementById('live-indicator');
+      const wsText = document.getElementById('ws-status-text');
+      const ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        if (dot) dot.className = 'live-dot active';
+        if (wsText) wsText.textContent = 'ONLINE';
+      };
+      ws.onmessage = (e) => {
+        try {
+          const d = JSON.parse(e.data);
+          if (d.supervisor) document.getElementById('supervisor-badge').textContent = d.supervisor.state;
+          if (d.sim_time_s !== undefined) document.getElementById('sim-clock').textContent = `T+ ${d.sim_time_s.toFixed(2)}s`;
+        } catch (_) {}
+      };
+      ws.onclose = () => {
+        if (dot) dot.className = 'live-dot';
+        if (wsText) wsText.textContent = 'RETRY';
+        setTimeout(initWs, 3000);
+      };
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initListeners();
+      analyzeArtwork();
+      initWs();
+    });
+  </script>
+</body>
+</html>

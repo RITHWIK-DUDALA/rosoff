@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1050 740" width="1050" height="740" style="background-color: #FFFFFF; font-family: 'Segoe UI', Arial, sans-serif;">
+    <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 10 5 L 0 8.5 z" fill="#1F497D"/>
+        </marker>
+        <marker id="arrow-dim" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+            <path d="M 0 2 L 10 5 L 0 8 z" fill="#2B579A"/>
+        </marker>
+        <pattern id="hatch" width="8" height="8" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+            <line x1="0" y1="0" x2="0" y2="8" stroke="#D0D0D0" stroke-width="1"/>
+        </pattern>
+    </defs>
+
+    <!-- Outer Border (ISO Drawing Frame) -->
+    <rect x="15" y="15" width="1020" height="710" fill="none" stroke="#1F497D" stroke-width="2.5"/>
+    <rect x="25" y="25" width="1000" height="690" fill="none" stroke="#2B579A" stroke-width="1"/>
+
+    <!-- Drawing Content Layer -->
+    <g id="drawing-content">
+        
+    <text x="50" y="60" font-size="18" font-weight="bold" fill="#0D233A">WALL STANDOFF ROLLERS &amp; PROXIMITY SENSOR</text>
+    <text x="50" y="80" font-size="12" fill="#555555">Production Specification &amp; ISO 2768-m Machining Reference | Sheet Code: CA-003</text>
+    <g transform="translate(100, 140)">
+        <rect x="0" y="0" width="600" height="420" fill="#F8FAFC" stroke="#334155" stroke-width="1.5" stroke-dasharray="4,4"/>
+        <text x="180" y="210" font-size="14" font-weight="bold" fill="#64748B">ENGINEERING SUBASSEMBLY SCHEMATIC: CA-003</text>
+        <text x="210" y="235" font-size="12" fill="#94A3B8">Full Dimensional Details &amp; Bill of Materials Callout</text>
+    </g>
+    
+    </g>
+
+    <!-- ISO Standard Title Block (Bottom Right) -->
+    <g id="title-block" transform="translate(645, 595)">
+        <rect x="0" y="0" width="380" height="120" fill="#F8FAFC" stroke="#1F497D" stroke-width="1.8"/>
+        <line x1="0" y1="35" x2="380" y2="35" stroke="#1F497D" stroke-width="1.2"/>
+        <line x1="0" y1="75" x2="380" y2="75" stroke="#1F497D" stroke-width="1.2"/>
+        <line x1="200" y1="0" x2="200" y2="75" stroke="#1F497D" stroke-width="1.2"/>
+        <line x1="290" y1="35" x2="290" y2="75" stroke="#1F497D" stroke-width="1.2"/>
+
+        <!-- Project Title -->
+        <text x="10" y="22" font-size="14" font-weight="bold" fill="#0D233A">PROJECT: UVWALL-600</text>
+        <text x="210" y="16" font-size="9" fill="#555555">ORGANIZATION</text>
+        <text x="210" y="28" font-size="11" font-weight="bold" fill="#1F497D">SYSTEMS ENGINEERING</text>
+
+        <!-- Document Info -->
+        <text x="10" y="50" font-size="9" fill="#555555">DRAWING TITLE</text>
+        <text x="10" y="66" font-size="13" font-weight="bold" fill="#0D233A">WALL STANDOFF ROLLERS &amp; PROXIMITY SENSOR</text>
+
+        <text x="210" y="50" font-size="9" fill="#555555">DWG NO.</text>
+        <text x="210" y="66" font-size="12" font-weight="bold" fill="#B91C1C">CA-003</text>
+
+        <text x="298" y="50" font-size="9" fill="#555555">REV / SHEET</text>
+        <text x="298" y="66" font-size="11" font-weight="bold" fill="#0D233A">1.0 / A3</text>
+
+        <!-- Technical Metadata -->
+        <text x="10" y="92" font-size="9" fill="#555555">STANDARD: ISO 128 / 2768-m | MATERIAL: AS SPECIFIED | ALL DIMS IN mm</text>
+        <text x="10" y="108" font-size="9" fill="#555555">PROJECTION: FIRST ANGLE [ISO] | STATUS: APPROVED FOR FABRICATION</text>
+    </g>
+</svg>

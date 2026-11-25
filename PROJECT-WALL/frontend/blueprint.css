@@ -1,0 +1,429 @@
+/* ==========================================================================
+   PROJECT W.A.L.L. — REAL ENGINEERING BLUEPRINT SUITE STYLING
+   Authentic Technical Blueprints with Vector Dimensions and 3D CAD Views
+   ========================================================================== */
+
+:root {
+  --font-mono: 'JetBrains Mono', 'Share Tech Mono', monospace;
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-tech: 'Share Tech Mono', monospace;
+}
+
+/* THEME 1: CLASSIC CYANOTYPE BLUEPRINT */
+body.blueprint-theme-classic {
+  --bp-bg-outer: #05162a;
+  --bp-bg-paper: #0b2f56;
+  --bp-grid-minor: rgba(255, 255, 255, 0.07);
+  --bp-grid-major: rgba(255, 255, 255, 0.16);
+  --bp-border: #ffffff;
+  --bp-line-primary: #ffffff;
+  --bp-line-hidden: rgba(255, 255, 255, 0.5);
+  --bp-line-center: rgba(147, 197, 253, 0.7);
+  --bp-dim-line: #93c5fd;
+  --bp-dim-text: #ffffff;
+  --bp-accent: #60a5fa;
+  --bp-hatch: rgba(255, 255, 255, 0.18);
+  --bp-cad-bg: #071e36;
+  --bp-card-bg: #0a2544;
+  --bp-text: #ffffff;
+  --bp-text-dim: #93c5fd;
+}
+
+/* THEME 2: GRAPHITE INDUSTRIAL CAD */
+body.blueprint-theme-graphite {
+  --bp-bg-outer: #0a0c10;
+  --bp-bg-paper: #12151c;
+  --bp-grid-minor: rgba(255, 255, 255, 0.04);
+  --bp-grid-major: rgba(255, 255, 255, 0.10);
+  --bp-border: #475569;
+  --bp-line-primary: #f8fafc;
+  --bp-line-hidden: rgba(148, 163, 184, 0.5);
+  --bp-line-center: rgba(245, 158, 11, 0.6);
+  --bp-dim-line: #f59e0b;
+  --bp-dim-text: #f59e0b;
+  --bp-accent: #f59e0b;
+  --bp-hatch: rgba(255, 255, 255, 0.12);
+  --bp-cad-bg: #0b0d12;
+  --bp-card-bg: #181c24;
+  --bp-text: #f8fafc;
+  --bp-text-dim: #94a3b8;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bp-bg-outer);
+  color: var(--bp-text);
+  font-family: var(--font-sans);
+  height: 100vh;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+.bp-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* TOP HEADER & GLOBAL NAV */
+.bp-top-navbar {
+  height: 46px;
+  background: var(--bp-bg-outer);
+  border-bottom: 1px solid var(--bp-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  z-index: 100;
+  gap: 12px;
+}
+
+.bp-brand {
+  display: flex;
+  align-items: center;
+  min-width: 280px;
+}
+
+.bp-main-title {
+  font-family: var(--font-tech);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.8px;
+  color: var(--bp-text);
+}
+
+.bp-sub-title {
+  font-size: 10px;
+  color: var(--bp-text-dim);
+  letter-spacing: 0.3px;
+}
+
+/* Global Multi-Page Nav */
+.bp-global-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bp-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--bp-text-dim);
+  text-decoration: none;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.bp-nav-btn:hover {
+  color: var(--bp-text);
+  background: var(--bp-card-bg);
+  border-color: var(--bp-border);
+}
+
+.bp-nav-btn.active {
+  color: var(--bp-accent);
+  background: var(--bp-card-bg);
+  border-color: var(--bp-accent);
+}
+
+/* SUB-NAVBAR: DEDICATED SHEET SELECTOR & THEME CONTROLS */
+.bp-sub-bar {
+  height: 40px;
+  background: var(--bp-card-bg);
+  border-bottom: 2px solid var(--bp-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+  z-index: 90;
+  gap: 10px;
+}
+
+/* SHEET NAVIGATOR TABS */
+.sheet-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  overflow-x: auto;
+}
+
+.sheet-tab {
+  background: var(--bp-bg-outer);
+  border: 1px solid var(--bp-border);
+  color: var(--bp-text-dim);
+  padding: 4px 9px;
+  border-radius: 3px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-tech);
+  font-size: 11px;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.sheet-tab:hover {
+  background: var(--bp-bg-paper);
+  color: var(--bp-text);
+}
+
+.sheet-tab.active {
+  background: var(--bp-line-primary);
+  color: var(--bp-bg-outer);
+  font-weight: 700;
+  border-color: var(--bp-line-primary);
+}
+
+.sheet-tab .tab-num {
+  font-weight: 700;
+  opacity: 0.8;
+}
+
+.theme-toggle-group {
+  display: flex;
+  background: var(--bp-bg-outer);
+  border: 1px solid var(--bp-border);
+  border-radius: 3px;
+  padding: 2px;
+}
+  border-radius: 3px;
+  padding: 2px;
+}
+
+.btn-tool {
+  background: transparent;
+  border: none;
+  color: var(--bp-text-dim);
+  font-size: 10px;
+  font-family: var(--font-tech);
+  padding: 3px 6px;
+  cursor: pointer;
+  border-radius: 2px;
+}
+
+.btn-tool.active {
+  background: var(--bp-line-primary);
+  color: var(--bp-bg-outer);
+  font-weight: 700;
+}
+
+.btn-cockpit {
+  background: var(--bp-card-bg);
+  border: 1px solid var(--bp-border);
+  color: var(--bp-text);
+  padding: 5px 10px;
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s;
+}
+
+.btn-cockpit:hover {
+  background: var(--bp-line-primary);
+  color: var(--bp-bg-outer);
+}
+
+/* MAIN BLUEPRINT WORKSPACE (SPLIT 2D BLUEPRINT & 3D CAD) */
+.bp-workspace {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  height: calc(100vh - 58px);
+  overflow: hidden;
+}
+
+/* LEFT PANE: 2D VECTOR BLUEPRINT WITH TECHNICAL DIMENSIONS */
+.bp-drawing-pane {
+  background: var(--bp-bg-paper);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  border-right: 2px solid var(--bp-border);
+  overflow: hidden;
+}
+
+.drawing-frame {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  overflow: auto;
+}
+
+.blueprint-canvas-wrap {
+  width: 100%;
+  height: 100%;
+  max-width: 1200px;
+  max-height: 820px;
+  position: relative;
+  background: var(--bp-bg-paper);
+}
+
+.blueprint-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* SVG TECHNICAL STYLES */
+.grid-line-minor { stroke: var(--bp-grid-minor); stroke-width: 0.5; }
+.grid-line-major { stroke: var(--bp-grid-major); stroke-width: 1.0; }
+.border-outer { stroke: var(--bp-border); stroke-width: 2.5; }
+.border-inner { stroke: var(--bp-border); stroke-width: 1.0; }
+.zone-text { font-family: var(--font-tech); font-size: 10px; fill: var(--bp-text-dim); }
+
+/* Blueprint Elements */
+.outline-solid { stroke: var(--bp-line-primary); stroke-width: 2.2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.outline-detail { stroke: var(--bp-line-primary); stroke-width: 1.2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.outline-hidden { stroke: var(--bp-line-hidden); stroke-width: 1.0; stroke-dasharray: 4, 3; fill: none; }
+.outline-center { stroke: var(--bp-line-center); stroke-width: 0.8; stroke-dasharray: 12, 3, 3, 3; fill: none; }
+.hatch-pattern { stroke: var(--bp-hatch); stroke-width: 0.8; fill: none; }
+
+/* Dimensioning Lines & Text */
+.dim-line { stroke: var(--bp-dim-line); stroke-width: 1.0; fill: none; }
+.dim-extension { stroke: var(--bp-dim-line); stroke-width: 0.75; stroke-dasharray: 2, 2; }
+.dim-arrow { fill: var(--bp-dim-line); }
+.dim-text { font-family: var(--font-tech); font-size: 11px; font-weight: 700; fill: var(--bp-dim-text); text-anchor: middle; }
+.dim-text-vert { font-family: var(--font-tech); font-size: 11px; font-weight: 700; fill: var(--bp-dim-text); text-anchor: middle; }
+.callout-leader { stroke: var(--bp-dim-line); stroke-width: 1.0; fill: none; }
+.callout-text { font-family: var(--font-tech); font-size: 10px; fill: var(--bp-dim-text); }
+.view-label { font-family: var(--font-tech); font-size: 13px; font-weight: 700; fill: var(--bp-text); letter-spacing: 0.5px; }
+
+/* Title Block */
+.title-block-bg { fill: var(--bp-bg-paper); stroke: var(--bp-border); stroke-width: 2.0; }
+.title-block-line { stroke: var(--bp-border); stroke-width: 1.0; }
+.tb-company { font-family: var(--font-tech); font-size: 10px; font-weight: 700; fill: var(--bp-text); letter-spacing: 0.5px; }
+.tb-label { font-family: var(--font-tech); font-size: 7.5px; fill: var(--bp-text-dim); letter-spacing: 0.3px; }
+.tb-val { font-family: var(--font-tech); font-size: 10px; font-weight: 700; fill: var(--bp-text); letter-spacing: 0.2px; }
+.tb-val-mono { font-family: var(--font-mono); font-size: 9.5px; font-weight: 700; fill: var(--bp-accent); }
+.tb-val-small { font-family: var(--font-tech); font-size: 8.5px; font-weight: 600; fill: var(--bp-text); }
+
+/* RIGHT PANE: 3D CAD INSPECTION */
+.bp-cad-pane {
+  background: var(--bp-cad-bg);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+.cad-header {
+  height: 44px;
+  background: var(--bp-bg-outer);
+  border-bottom: 1px solid var(--bp-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+}
+
+.cad-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cad-badge {
+  font-family: var(--font-tech);
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 6px;
+  background: var(--bp-card-bg);
+  border: 1px solid var(--bp-border);
+  border-radius: 2px;
+  color: var(--bp-accent);
+}
+
+.cad-part-name {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--bp-text);
+}
+
+.cad-tools {
+  display: flex;
+  gap: 4px;
+}
+
+.btn-cad-tool {
+  background: var(--bp-card-bg);
+  border: 1px solid var(--bp-border);
+  color: var(--bp-text-dim);
+  font-family: var(--font-tech);
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-cad-tool:hover {
+  color: var(--bp-text);
+}
+
+.btn-cad-tool.active {
+  background: var(--bp-line-primary);
+  color: var(--bp-bg-outer);
+  font-weight: 700;
+}
+
+.cad-viewport-container {
+  flex: 1;
+  position: relative;
+  width: 100%;
+  height: calc(100% - 100px);
+}
+
+/* CAD SPECIFICATIONS FOOTER */
+.cad-specs-footer {
+  height: 56px;
+  background: var(--bp-bg-outer);
+  border-top: 1px solid var(--bp-border);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  padding: 6px 12px;
+  gap: 8px;
+}
+
+.spec-cell {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.spec-lbl {
+  font-family: var(--font-tech);
+  font-size: 8px;
+  color: var(--bp-text-dim);
+  letter-spacing: 0.5px;
+}
+
+.spec-val {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--bp-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+

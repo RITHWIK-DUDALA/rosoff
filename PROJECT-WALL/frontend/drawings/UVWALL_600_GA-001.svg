@@ -1,0 +1,127 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1050 740" width="1050" height="740" style="background-color: #FFFFFF; font-family: 'Segoe UI', Arial, sans-serif;">
+    <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 10 5 L 0 8.5 z" fill="#1F497D"/>
+        </marker>
+        <marker id="arrow-dim" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+            <path d="M 0 2 L 10 5 L 0 8 z" fill="#2B579A"/>
+        </marker>
+        <pattern id="hatch" width="8" height="8" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+            <line x1="0" y1="0" x2="0" y2="8" stroke="#D0D0D0" stroke-width="1"/>
+        </pattern>
+    </defs>
+
+    <!-- Outer Border (ISO Drawing Frame) -->
+    <rect x="15" y="15" width="1020" height="710" fill="none" stroke="#1F497D" stroke-width="2.5"/>
+    <rect x="25" y="25" width="1000" height="690" fill="none" stroke="#2B579A" stroke-width="1"/>
+
+    <!-- Drawing Content Layer -->
+    <g id="drawing-content">
+        
+    <!-- Dimension Grid / Title -->
+    <text x="50" y="60" font-size="18" font-weight="bold" fill="#0D233A">GENERAL ARRANGEMENT &amp; WORKING ENVELOPE</text>
+    <text x="50" y="80" font-size="12" fill="#555555">Overall Envelope: 850 mm (W) x 1250 mm (H) x 350 mm (D) | Printable: 600 x 900 mm</text>
+
+    <!-- Front Elevation View -->
+    <g transform="translate(100, 120)">
+        <text x="140" y="-15" font-size="13" font-weight="bold" fill="#1F497D">FRONT ELEVATION VIEW (X-Z PLANE)</text>
+        <!-- Outer Frame Outline -->
+        <rect x="0" y="0" width="340" height="500" fill="#F1F5F9" stroke="#334155" stroke-width="2"/>
+        <!-- Dual 4080 Masts -->
+        <rect x="25" y="0" width="32" height="500" fill="#CBD5E1" stroke="#475569" stroke-width="1.5"/>
+        <rect x="283" y="0" width="32" height="500" fill="#CBD5E1" stroke="#475569" stroke-width="1.5"/>
+        <!-- Cross ties -->
+        <rect x="0" y="468" width="340" height="32" fill="#94A3B8" stroke="#334155" stroke-width="1.5"/>
+        <rect x="0" y="0" width="340" height="32" fill="#94A3B8" stroke="#334155" stroke-width="1.5"/>
+        
+        <!-- Printable Region Envelope (Dashed Red) -->
+        <rect x="50" y="80" width="240" height="360" fill="none" stroke="#DC2626" stroke-width="1.5" stroke-dasharray="6,4"/>
+        <text x="85" y="260" font-size="12" font-weight="bold" fill="#DC2626">PRINTABLE REGION: 600 x 900 mm</text>
+
+        <!-- Horizontal X-Beam -->
+        <rect x="25" y="200" width="290" height="32" fill="#64748B" stroke="#1E293B" stroke-width="1.5"/>
+        <!-- Carriage &amp; Printhead -->
+        <rect x="140" y="175" width="70" height="60" fill="#3B82F6" stroke="#1D4ED8" stroke-width="1.5"/>
+        <rect x="155" y="190" width="25" height="30" fill="#FBBF24" stroke="#D97706" stroke-width="1"/>
+        <text x="185" y="210" font-size="10" font-weight="bold" fill="#FFFFFF">I3200</text>
+
+        <!-- Base Outriggers -->
+        <rect x="10" y="495" width="62" height="15" fill="#475569" stroke="#1E293B"/>
+        <rect x="268" y="495" width="62" height="15" fill="#475569" stroke="#1E293B"/>
+
+        <!-- Height Dimension: 1250 mm -->
+        <line x1="-30" y1="0" x2="-30" y2="500" stroke="#2563EB" stroke-width="1.5" marker-start="url(#arrow-dim)" marker-end="url(#arrow-dim)"/>
+        <line x1="-40" y1="0" x2="-20" y2="0" stroke="#2563EB" stroke-width="1"/>
+        <line x1="-40" y1="500" x2="-20" y2="500" stroke="#2563EB" stroke-width="1"/>
+        <text x="-75" y="255" font-size="12" font-weight="bold" fill="#2563EB">1250</text>
+
+        <!-- Width Dimension: 850 mm -->
+        <line x1="0" y1="535" x2="340" y2="535" stroke="#2563EB" stroke-width="1.5" marker-start="url(#arrow-dim)" marker-end="url(#arrow-dim)"/>
+        <line x1="0" y1="525" x2="0" y2="545" stroke="#2563EB" stroke-width="1"/>
+        <line x1="340" y1="525" x2="340" y2="545" stroke="#2563EB" stroke-width="1"/>
+        <text x="150" y="555" font-size="12" font-weight="bold" fill="#2563EB">850</text>
+    </g>
+
+    <!-- Side Elevation View (Y-Z Plane) -->
+    <g transform="translate(540, 120)">
+        <text x="40" y="-15" font-size="13" font-weight="bold" fill="#1F497D">SIDE ELEVATION VIEW (Y-Z PLANE)</text>
+        <!-- Vertical Mast Profile (80mm width) -->
+        <rect x="60" y="0" width="32" height="500" fill="#CBD5E1" stroke="#475569" stroke-width="1.5"/>
+        <!-- Base Outrigger Foot (350mm depth) -->
+        <rect x="0" y="480" width="140" height="20" fill="#64748B" stroke="#334155" stroke-width="1.5"/>
+        <circle cx="20" cy="510" r="10" fill="#1E293B"/>
+        <circle cx="120" cy="510" r="10" fill="#1E293B"/>
+
+        <!-- X-Crossbeam End Profile &amp; Forward Carriage -->
+        <rect x="92" y="200" width="20" height="32" fill="#64748B" stroke="#1E293B"/>
+        <!-- Printhead Firing towards Wall (Leftwards) -->
+        <rect x="112" y="185" width="35" height="50" fill="#3B82F6" stroke="#1D4ED8"/>
+        <!-- Standoff Rollers Contacting Wall -->
+        <circle cx="155" cy="180" r="8" fill="#F8FAFC" stroke="#0F172A" stroke-width="1.5"/>
+        <circle cx="155" cy="235" r="8" fill="#F8FAFC" stroke="#0F172A" stroke-width="1.5"/>
+
+        <!-- Target Wall Plane (Dashed Red Line) -->
+        <line x1="163" y1="50" x2="163" y2="450" stroke="#DC2626" stroke-width="2" stroke-dasharray="8,4"/>
+        <text x="170" y="100" font-size="11" font-weight="bold" fill="#DC2626">WALL SURFACE</text>
+
+        <!-- Nozzle Stand-off Dimension: 1.5 mm -->
+        <line x1="147" y1="210" x2="163" y2="210" stroke="#D97706" stroke-width="1.5" marker-start="url(#arrow-dim)" marker-end="url(#arrow-dim)"/>
+        <text x="170" y="215" font-size="10" font-weight="bold" fill="#D97706">1.5 +/- 0.5 mm</text>
+
+        <!-- Base Depth Dimension: 350 mm -->
+        <line x1="0" y1="535" x2="140" y2="535" stroke="#2563EB" stroke-width="1.5" marker-start="url(#arrow-dim)" marker-end="url(#arrow-dim)"/>
+        <line x1="0" y1="525" x2="0" y2="545" stroke="#2563EB" stroke-width="1"/>
+        <line x1="140" y1="525" x2="140" y2="545" stroke="#2563EB" stroke-width="1"/>
+        <text x="55" y="555" font-size="12" font-weight="bold" fill="#2563EB">350</text>
+    </g>
+
+    </g>
+
+    <!-- ISO Standard Title Block (Bottom Right) -->
+    <g id="title-block" transform="translate(645, 595)">
+        <rect x="0" y="0" width="380" height="120" fill="#F8FAFC" stroke="#1F497D" stroke-width="1.8"/>
+        <line x1="0" y1="35" x2="380" y2="35" stroke="#1F497D" stroke-width="1.2"/>
+        <line x1="0" y1="75" x2="380" y2="75" stroke="#1F497D" stroke-width="1.2"/>
+        <line x1="200" y1="0" x2="200" y2="75" stroke="#1F497D" stroke-width="1.2"/>
+        <line x1="290" y1="35" x2="290" y2="75" stroke="#1F497D" stroke-width="1.2"/>
+
+        <!-- Project Title -->
+        <text x="10" y="22" font-size="14" font-weight="bold" fill="#0D233A">PROJECT: UVWALL-600</text>
+        <text x="210" y="16" font-size="9" fill="#555555">ORGANIZATION</text>
+        <text x="210" y="28" font-size="11" font-weight="bold" fill="#1F497D">SYSTEMS ENGINEERING</text>
+
+        <!-- Document Info -->
+        <text x="10" y="50" font-size="9" fill="#555555">DRAWING TITLE</text>
+        <text x="10" y="66" font-size="13" font-weight="bold" fill="#0D233A">GENERAL ARRANGEMENT &amp; WORKING ENVELOPE</text>
+
+        <text x="210" y="50" font-size="9" fill="#555555">DWG NO.</text>
+        <text x="210" y="66" font-size="12" font-weight="bold" fill="#B91C1C">GA-001</text>
+
+        <text x="298" y="50" font-size="9" fill="#555555">REV / SHEET</text>
+        <text x="298" y="66" font-size="11" font-weight="bold" fill="#0D233A">1.0 / A3</text>
+
+        <!-- Technical Metadata -->
+        <text x="10" y="92" font-size="9" fill="#555555">STANDARD: ISO 128 / 2768-m | MATERIAL: AS SPECIFIED | ALL DIMS IN mm</text>
+        <text x="10" y="108" font-size="9" fill="#555555">PROJECTION: FIRST ANGLE [ISO] | STATUS: APPROVED FOR FABRICATION</text>
+    </g>
+</svg>

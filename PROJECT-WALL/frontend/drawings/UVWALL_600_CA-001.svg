@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1050 740" width="1050" height="740" style="background-color: #FFFFFF; font-family: 'Segoe UI', Arial, sans-serif;">
+    <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 10 5 L 0 8.5 z" fill="#1F497D"/>
+        </marker>
+        <marker id="arrow-dim" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+            <path d="M 0 2 L 10 5 L 0 8 z" fill="#2B579A"/>
+        </marker>
+        <pattern id="hatch" width="8" height="8" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+            <line x1="0" y1="0" x2="0" y2="8" stroke="#D0D0D0" stroke-width="1"/>
+        </pattern>
+    </defs>
+
+    <!-- Outer Border (ISO Drawing Frame) -->
+    <rect x="15" y="15" width="1020" height="710" fill="none" stroke="#1F497D" stroke-width="2.5"/>
+    <rect x="25" y="25" width="1000" height="690" fill="none" stroke="#2B579A" stroke-width="1"/>
+
+    <!-- Drawing Content Layer -->
+    <g id="drawing-content">
+        
+    <text x="50" y="60" font-size="18" font-weight="bold" fill="#0D233A">CNC CARRIAGE BACKING PLATE (ALUMINUM 6061-T6)</text>
+    <text x="50" y="80" font-size="12" fill="#555555">Plate Envelope: 200 mm x 160 mm x 8.0 mm | Dual HGH15CA Mount + Standoff Outriggers</text>
+
+    <g transform="translate(130, 130)">
+        <rect x="0" y="0" width="560" height="420" rx="8" fill="#F8FAFC" stroke="#0F172A" stroke-width="2.5"/>
+
+        <rect x="180" y="150" width="200" height="150" rx="4" fill="#E2E8F0" stroke="#334155" stroke-width="1.5"/>
+        <text x="210" y="230" font-size="13" font-weight="bold" fill="#475569">PRINTHEAD CAVITY</text>
+
+        <rect x="40" y="40" width="100" height="100" rx="6" fill="#F1F5F9" stroke="#94A3B8" stroke-width="1"/>
+        <rect x="420" y="40" width="100" height="100" rx="6" fill="#F1F5F9" stroke="#94A3B8" stroke-width="1"/>
+        <rect x="40" y="280" width="100" height="100" rx="6" fill="#F1F5F9" stroke="#94A3B8" stroke-width="1"/>
+        <rect x="420" y="280" width="100" height="100" rx="6" fill="#F1F5F9" stroke="#94A3B8" stroke-width="1"/>
+
+        <g fill="#FFFFFF" stroke="#0F172A" stroke-width="1.5">
+            <circle cx="150" cy="50" r="6"/> <circle cx="210" cy="50" r="6"/>
+            <circle cx="150" cy="90" r="6"/> <circle cx="210" cy="90" r="6"/>
+            <circle cx="350" cy="50" r="6"/> <circle cx="410" cy="50" r="6"/>
+            <circle cx="350" cy="90" r="6"/> <circle cx="410" cy="90" r="6"/>
+        </g>
+        <text x="220" y="35" font-size="11" font-weight="bold" fill="#1D4ED8">8x M4 MOUNTING FOR DUAL HGH15CA</text>
+
+        <line x1="0" y1="-20" x2="560" y2="-20" stroke="#2563EB" stroke-width="1.5" marker-start="url(#arrow-dim)" marker-end="url(#arrow-dim)"/>
+        <text x="260" y="-28" font-size="13" font-weight="bold" fill="#2563EB">200.0 mm</text>
+
+        <line x1="-20" y1="0" x2="-20" y2="420" stroke="#2563EB" stroke-width="1.5" marker-start="url(#arrow-dim)" marker-end="url(#arrow-dim)"/>
+        <text x="-60" y="215" font-size="13" font-weight="bold" fill="#2563EB">160.0 mm</text>
+    </g>
+
+    </g>
+
+    <!-- ISO Standard Title Block (Bottom Right) -->
+    <g id="title-block" transform="translate(645, 595)">
+        <rect x="0" y="0" width="380" height="120" fill="#F8FAFC" stroke="#1F497D" stroke-width="1.8"/>
+        <line x1="0" y1="35" x2="380" y2="35" stroke="#1F497D" stroke-width="1.2"/>
+        <line x1="0" y1="75" x2="380" y2="75" stroke="#1F497D" stroke-width="1.2"/>
+        <line x1="200" y1="0" x2="200" y2="75" stroke="#1F497D" stroke-width="1.2"/>
+        <line x1="290" y1="35" x2="290" y2="75" stroke="#1F497D" stroke-width="1.2"/>
+
+        <!-- Project Title -->
+        <text x="10" y="22" font-size="14" font-weight="bold" fill="#0D233A">PROJECT: UVWALL-600</text>
+        <text x="210" y="16" font-size="9" fill="#555555">ORGANIZATION</text>
+        <text x="210" y="28" font-size="11" font-weight="bold" fill="#1F497D">SYSTEMS ENGINEERING</text>
+
+        <!-- Document Info -->
+        <text x="10" y="50" font-size="9" fill="#555555">DRAWING TITLE</text>
+        <text x="10" y="66" font-size="13" font-weight="bold" fill="#0D233A">CNC CARRIAGE BACKING PLATE</text>
+
+        <text x="210" y="50" font-size="9" fill="#555555">DWG NO.</text>
+        <text x="210" y="66" font-size="12" font-weight="bold" fill="#B91C1C">CA-001</text>
+
+        <text x="298" y="50" font-size="9" fill="#555555">REV / SHEET</text>
+        <text x="298" y="66" font-size="11" font-weight="bold" fill="#0D233A">1.0 / A3</text>
+
+        <!-- Technical Metadata -->
+        <text x="10" y="92" font-size="9" fill="#555555">STANDARD: ISO 128 / 2768-m | MATERIAL: AS SPECIFIED | ALL DIMS IN mm</text>
+        <text x="10" y="108" font-size="9" fill="#555555">PROJECTION: FIRST ANGLE [ISO] | STATUS: APPROVED FOR FABRICATION</text>
+    </g>
+</svg>

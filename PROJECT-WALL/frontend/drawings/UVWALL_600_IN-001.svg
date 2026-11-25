@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1050 740" width="1050" height="740" style="background-color: #FFFFFF; font-family: 'Segoe UI', Arial, sans-serif;">
+    <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 10 5 L 0 8.5 z" fill="#1F497D"/>
+        </marker>
+        <marker id="arrow-dim" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+            <path d="M 0 2 L 10 5 L 0 8 z" fill="#2B579A"/>
+        </marker>
+        <pattern id="hatch" width="8" height="8" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+            <line x1="0" y1="0" x2="0" y2="8" stroke="#D0D0D0" stroke-width="1"/>
+        </pattern>
+    </defs>
+
+    <!-- Outer Border (ISO Drawing Frame) -->
+    <rect x="15" y="15" width="1020" height="710" fill="none" stroke="#1F497D" stroke-width="2.5"/>
+    <rect x="25" y="25" width="1000" height="690" fill="none" stroke="#2B579A" stroke-width="1"/>
+
+    <!-- Drawing Content Layer -->
+    <g id="drawing-content">
+        
+    <text x="50" y="60" font-size="18" font-weight="bold" fill="#0D233A">EPSON I3200-U1 PRECISION MOUNTING PLATE (CNC MACHINED)</text>
+    <text x="50" y="80" font-size="12" fill="#555555">Material: 6061-T6 Aluminum Plate (8.0 mm Thk) | Tolerances: ISO 2768-m (Dowel Pin: +/-0.01 mm)</text>
+
+    <!-- Detailed CNC Machining Top View -->
+    <g transform="translate(160, 130)">
+        <rect x="0" y="0" width="440" height="380" rx="8" fill="#F8FAFC" stroke="#0F172A" stroke-width="2.5"/>
+
+        <!-- Central Nozzle Cutout (62.0 x 16.5 mm) -->
+        <rect x="96" y="157" width="248" height="66" rx="4" fill="#E2E8F0" stroke="#1E293B" stroke-width="1.8"/>
+        <text x="175" y="195" font-size="13" font-weight="bold" fill="#475569">NOZZLE APERTURE</text>
+        <text x="180" y="210" font-size="11" fill="#64748B">62.0 x 16.5 mm</text>
+
+        <!-- 2x M3 Printhead Mounting Holes -->
+        <circle cx="112" cy="190" r="6.6" fill="#FFFFFF" stroke="#0F172A" stroke-width="1.5"/>
+        <circle cx="328" cy="190" r="6.6" fill="#FFFFFF" stroke="#0F172A" stroke-width="1.5"/>
+        <text x="80" y="170" font-size="10" font-weight="bold" fill="#1D4ED8">2x DIA 3.3 THRU (M3)</text>
+
+        <!-- 2x Precision Alignment Dowel Holes (Dia 2.5 mm H7) -->
+        <circle cx="126" cy="142" r="5.0" fill="#BFDBFE" stroke="#1D4ED8" stroke-width="1.5"/>
+        <circle cx="314" cy="238" r="5.0" fill="#BFDBFE" stroke="#1D4ED8" stroke-width="1.5"/>
+        <text x="250" y="260" font-size="10" font-weight="bold" fill="#1D4ED8">2x DIA 2.50 H7 DOWEL</text>
+
+        <!-- FFC Ribbon Cable Bend Slot -->
+        <rect x="116" y="40" width="208" height="72" rx="4" fill="#FEF3C7" stroke="#D97706" stroke-width="1.5"/>
+        <text x="160" y="80" font-size="11" font-weight="bold" fill="#B45309">FFC CABLE PASS-THROUGH</text>
+
+        <!-- 4x Elongated Adjustment Slots -->
+        <rect x="30" y="30" width="18" height="36" rx="9" fill="#FFFFFF" stroke="#DC2626" stroke-width="1.5"/>
+        <rect x="392" y="30" width="18" height="36" rx="9" fill="#FFFFFF" stroke="#DC2626" stroke-width="1.5"/>
+        <rect x="30" y="314" width="18" height="36" rx="9" fill="#FFFFFF" stroke="#DC2626" stroke-width="1.5"/>
+        <rect x="392" y="314" width="18" height="36" rx="9" fill="#FFFFFF" stroke="#DC2626" stroke-width="1.5"/>
+        <text x="55" y="335" font-size="10" font-weight="bold" fill="#DC2626">4x M4 SLOTS (+/- 1.5 mm CALIBRATION)</text>
+
+        <!-- Overall Dimensions -->
+        <line x1="0" y1="-25" x2="440" y2="-25" stroke="#2563EB" stroke-width="1.5" marker-start="url(#arrow-dim)" marker-end="url(#arrow-dim)"/>
+        <line x1="0" y1="-35" x2="0" y2="-15" stroke="#2563EB" stroke-width="1"/>
+        <line x1="440" y1="-35" x2="440" y2="-15" stroke="#2563EB" stroke-width="1"/>
+        <text x="205" y="-32" font-size="13" font-weight="bold" fill="#2563EB">110.00 +/-0.05</text>
+
+        <line x1="-25" y1="0" x2="-25" y2="380" stroke="#2563EB" stroke-width="1.5" marker-start="url(#arrow-dim)" marker-end="url(#arrow-dim)"/>
+        <line x1="-35" y1="0" x2="-15" y2="0" stroke="#2563EB" stroke-width="1"/>
+        <line x1="-35" y1="380" x2="-15" y2="380" stroke="#2563EB" stroke-width="1"/>
+        <text x="-65" y="195" font-size="13" font-weight="bold" fill="#2563EB">95.00</text>
+    </g>
+
+    </g>
+
+    <!-- ISO Standard Title Block (Bottom Right) -->
+    <g id="title-block" transform="translate(645, 595)">
+        <rect x="0" y="0" width="380" height="120" fill="#F8FAFC" stroke="#1F497D" stroke-width="1.8"/>
+        <line x1="0" y1="35" x2="380" y2="35" stroke="#1F497D" stroke-width="1.2"/>
+        <line x1="0" y1="75" x2="380" y2="75" stroke="#1F497D" stroke-width="1.2"/>
+        <line x1="200" y1="0" x2="200" y2="75" stroke="#1F497D" stroke-width="1.2"/>
+        <line x1="290" y1="35" x2="290" y2="75" stroke="#1F497D" stroke-width="1.2"/>
+
+        <!-- Project Title -->
+        <text x="10" y="22" font-size="14" font-weight="bold" fill="#0D233A">PROJECT: UVWALL-600</text>
+        <text x="210" y="16" font-size="9" fill="#555555">ORGANIZATION</text>
+        <text x="210" y="28" font-size="11" font-weight="bold" fill="#1F497D">SYSTEMS ENGINEERING</text>
+
+        <!-- Document Info -->
+        <text x="10" y="50" font-size="9" fill="#555555">DRAWING TITLE</text>
+        <text x="10" y="66" font-size="13" font-weight="bold" fill="#0D233A">EPSON I3200-U1 PRECISION MOUNTING PLATE</text>
+
+        <text x="210" y="50" font-size="9" fill="#555555">DWG NO.</text>
+        <text x="210" y="66" font-size="12" font-weight="bold" fill="#B91C1C">IN-001</text>
+
+        <text x="298" y="50" font-size="9" fill="#555555">REV / SHEET</text>
+        <text x="298" y="66" font-size="11" font-weight="bold" fill="#0D233A">1.0 / A3</text>
+
+        <!-- Technical Metadata -->
+        <text x="10" y="92" font-size="9" fill="#555555">STANDARD: ISO 128 / 2768-m | MATERIAL: AS SPECIFIED | ALL DIMS IN mm</text>
+        <text x="10" y="108" font-size="9" fill="#555555">PROJECTION: FIRST ANGLE [ISO] | STATUS: APPROVED FOR FABRICATION</text>
+    </g>
+</svg>

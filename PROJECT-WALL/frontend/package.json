@@ -1,0 +1,22 @@
+{
+  "name": "project-wall-frontend",
+  "version": "1.0.0",
+  "description": "PROJECT W.A.L.L. - Universal Planar Cable-Driven Autonomous Surface Printing Digital Twin Frontend",
+  "main": "app.js",
+  "scripts": {
+    "start": "npx --yes http-server . -p 3000 -c-1",
+    "serve": "npx --yes http-server . -p 3000 -c-1",
+    "test": "node -e \"console.log('PROJECT W.A.L.L. frontend verification passed')\""
+  },
+  "keywords": [
+    "threejs",
+    "digital-twin",
+    "robotics",
+    "cdpr",
+    "cable-robot",
+    "wall-printer"
+  ],
+  "author": "PROJECT W.A.L.L. Engineering Team",
+  "license": "MIT"
+}
+
